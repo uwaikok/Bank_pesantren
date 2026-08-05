@@ -590,7 +590,7 @@ router.post('/transaksi', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/transaksi', requireAuth, async (req, res) => {
+router.get(['/transaksi', '/transaksi/history'], requireAuth, async (req, res) => {
   try {
     const { tipe, search, start_date, end_date, limit = 50, offset = 0 } = req.query;
     let queryText = `
@@ -619,7 +619,15 @@ router.get('/transaksi', requireAuth, async (req, res) => {
     if (conditions.length > 0) countQuery += ' WHERE ' + conditions.join(' AND ');
     const countResult = await pool.query(countQuery, countParams);
 
-    res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0]?.count || 0) });
+    let sumQuery = `
+      SELECT SUM(CASE WHEN t.tipe_transaksi = 'topup' THEN t.jumlah ELSE -t.jumlah END) as total_flow
+      FROM transaksi t JOIN santri s ON t.santri_id = s.id
+    `;
+    if (conditions.length > 0) sumQuery += ' WHERE ' + conditions.join(' AND ');
+    const sumResult = await pool.query(sumQuery, countParams);
+    const totalFlow = parseFloat(sumResult.rows[0]?.total_flow || 0);
+
+    res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0]?.count || 0), totalFlow });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error retrieving transaction history.' });
   }
