@@ -22,7 +22,12 @@ export default function Login({ onLoginSuccess }) {
         body: JSON.stringify({ username, password })
       });
 
-      const json = await res.json();
+      let json;
+      try {
+        json = await res.json();
+      } catch (parseErr) {
+        throw new Error(`Server (HTTP ${res.status}): Format respon server tidak valid.`);
+      }
 
       if (json.success) {
         localStorage.setItem('esaku_token', json.data.token);
@@ -35,7 +40,7 @@ export default function Login({ onLoginSuccess }) {
       }
     } catch (err) {
       console.error(err);
-      setError('Tidak dapat terhubung ke server. Pastikan backend sudah berjalan.');
+      setError(err.message || 'Tidak dapat terhubung ke server. Pastikan backend sudah berjalan.');
     } finally {
       setLoading(false);
     }

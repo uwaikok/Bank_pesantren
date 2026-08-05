@@ -5,21 +5,26 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // ─── Database Connection (PostgreSQL / Neon) ───────────────────────────────
+let dbUrl = process.env.DATABASE_URL || '';
+// Strip channel_binding parameter if present as pg module doesn't support it
+if (dbUrl.includes('channel_binding')) {
+  dbUrl = dbUrl.replace(/[?&]channel_binding=[^&]*/g, '');
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: { rejectUnauthorized: false },
   max: 5,
+  connectionTimeoutMillis: 10000,
 });
 
 const db = {
   query: async (text, params) => {
-    // Convert MySQL ? placeholders to PostgreSQL $1, $2...
     let i = 0;
     const pgText = text.replace(/\?/g, () => `$${++i}`);
     const result = await pool.query(pgText, params);
     return { rows: result.rows };
   },
-  // Transaction helper: returns a client with beginTransaction / commit / rollback
   getConnection: async () => {
     const client = await pool.connect();
     return {
@@ -27,7 +32,6 @@ const db = {
         let i = 0;
         const pgText = text.replace(/\?/g, () => `$${++i}`);
         const result = await client.query(pgText, params);
-        // MySQL returns [rows, fields]; pg returns result.rows
         return [result.rows, null];
       },
       query: async (text, params) => {
@@ -44,10 +48,13 @@ const db = {
   },
 };
 
-// ─── Auto-migrate: create tables if they don't exist ───────────────────────
+// ─── Auto-migrate ──────────────────────────────────────────────────────────
+let migrated = false;
 async function autoMigrate() {
-  const client = await pool.connect();
+  if (migrated) return;
+  let client;
   try {
+    client = await pool.connect();
     await client.query(`
       CREATE TABLE IF NOT EXISTS santri (
         id SERIAL PRIMARY KEY,
@@ -102,13 +109,11 @@ async function autoMigrate() {
       )
     `);
 
-    // Create indexes (safe with IF NOT EXISTS)
     await client.query(`CREATE INDEX IF NOT EXISTS idx_santri_nis ON santri(nis)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_kartu_uid ON kartu(card_uid)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_transaksi_santri_id ON transaksi(santri_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_transaksi_created_at ON transaksi(created_at)`);
 
-    // Seed default admin if not exist
     const { rows: existingUsers } = await client.query('SELECT COUNT(*) AS cnt FROM users');
     if (parseInt(existingUsers[0].cnt) === 0) {
       const defaultHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'pesantren2026', 12);
@@ -116,10 +121,8 @@ async function autoMigrate() {
         'INSERT INTO users (name, username, password_hash, role, status) VALUES ($1, $2, $3, $4, $5)',
         ['Administrator Utama', process.env.ADMIN_USERNAME || 'admin', defaultHash, 'Administrator', 'aktif']
       );
-      console.log('✅ Default admin user seeded.');
     }
 
-    // Seed demo santri if not exist
     const { rows: existingSantri } = await client.query('SELECT COUNT(*) AS cnt FROM santri');
     if (parseInt(existingSantri[0].cnt) === 0) {
       await client.query(`
@@ -141,26 +144,30 @@ async function autoMigrate() {
         (2, 2, 'pembayaran', 25000.00, 100000.00, 75000.00, 'Pembelian kitab kuning di koperasi', 'Kasir Koperasi'),
         (3, 3, 'topup', 250000.00, 0.00, 250000.00, 'Top up bulanan wali santri', 'Admin Utama')
       `);
-      console.log('✅ Demo data seeded.');
     }
-
-    console.log('✅ Database auto-migration complete.');
+    migrated = true;
   } catch (err) {
     console.error('❌ Auto-migration error:', err.message);
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 
-// Run migration on cold start
-autoMigrate();
-
-// ─── App Setup ─────────────────────────────────────────────────────────────
+// ─── Express App Setup ──────────────────────────────────────────────────────
 const app = express();
+const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'esaku_pesantren_secret_key_2026';
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Auto migrate trigger on request
+app.use(async (req, res, next) => {
+  if (!migrated && process.env.DATABASE_URL) {
+    await autoMigrate();
+  }
+  next();
+});
 
 // ─── Auth Middleware ────────────────────────────────────────────────────────
 const requireAuth = (req, res, next) => {
@@ -183,11 +190,8 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// ─── Helper: convert MySQL DATE_FORMAT / DAYNAME to PostgreSQL ─────────────
-// We replace MySQL-specific functions in queries manually below
-
 // ─── HEALTH CHECK ──────────────────────────────────────────────────────────
-app.get('/api/health', async (req, res) => {
+router.get('/health', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
     res.json({ status: 'healthy', database: 'connected', time: result.rows[0].now });
@@ -196,37 +200,37 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// AUTH ROUTES
-// ════════════════════════════════════════════════════════════════════════════
-
-// POST /api/auth/login
-app.post('/api/auth/login', async (req, res) => {
+// ─── AUTH ROUTES ───────────────────────────────────────────────────────────
+router.post('/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
       return res.status(400).json({ success: false, message: 'Username dan password wajib diisi.' });
     }
 
-    const { rows } = await db.query(
-      'SELECT id, name, username, password_hash, role, status FROM users WHERE username = $1',
-      [username]
-    );
-
-    if (rows.length > 0) {
-      const user = rows[0];
-      if (user.status === 'nonaktif') {
-        return res.status(403).json({ success: false, message: 'Akun Anda telah dinonaktifkan.' });
-      }
-      const isMatch = await bcrypt.compare(password, user.password_hash);
-      if (!isMatch) {
-        return res.status(401).json({ success: false, message: 'Username atau password salah.' });
-      }
-      const token = jwt.sign(
-        { id: user.id, username: user.username, role: user.role, name: user.name },
-        JWT_SECRET, { expiresIn: '8h' }
+    try {
+      const { rows } = await db.query(
+        'SELECT id, name, username, password_hash, role, status FROM users WHERE username = $1',
+        [username]
       );
-      return res.json({ success: true, message: 'Login berhasil.', data: { token, username: user.username, name: user.name, role: user.role, expiresIn: '8h' } });
+
+      if (rows.length > 0) {
+        const user = rows[0];
+        if (user.status === 'nonaktif') {
+          return res.status(403).json({ success: false, message: 'Akun Anda telah dinonaktifkan.' });
+        }
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        if (!isMatch) {
+          return res.status(401).json({ success: false, message: 'Username atau password salah.' });
+        }
+        const token = jwt.sign(
+          { id: user.id, username: user.username, role: user.role, name: user.name },
+          JWT_SECRET, { expiresIn: '8h' }
+        );
+        return res.json({ success: true, message: 'Login berhasil.', data: { token, username: user.username, name: user.name, role: user.role, expiresIn: '8h' } });
+      }
+    } catch (dbErr) {
+      console.error('DB Login Query Error:', dbErr.message);
     }
 
     // Fallback env credentials
@@ -239,12 +243,12 @@ app.post('/api/auth/login', async (req, res) => {
 
     return res.status(401).json({ success: false, message: 'Username atau password salah.' });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Server error saat login.' });
+    console.error('Login error:', err);
+    res.status(500).json({ success: false, message: 'Server error saat login: ' + err.message });
   }
 });
 
-// GET /api/auth/verify
-app.get('/api/auth/verify', (req, res) => {
+router.get('/auth/verify', (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ success: false, message: 'Token tidak ditemukan.' });
@@ -257,8 +261,7 @@ app.get('/api/auth/verify', (req, res) => {
   }
 });
 
-// POST /api/auth/change-password
-app.post('/api/auth/change-password', requireAuth, async (req, res) => {
+router.post('/auth/change-password', requireAuth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword || newPassword.length < 6) {
@@ -276,12 +279,8 @@ app.post('/api/auth/change-password', requireAuth, async (req, res) => {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// SANTRI ROUTES
-// ════════════════════════════════════════════════════════════════════════════
-
-// GET /api/santri
-app.get('/api/santri', requireAuth, async (req, res) => {
+// ─── SANTRI ROUTES ─────────────────────────────────────────────────────────
+router.get('/santri', requireAuth, async (req, res) => {
   try {
     const { search, status, kelas } = req.query;
     let queryText = `
@@ -304,13 +303,11 @@ app.get('/api/santri', requireAuth, async (req, res) => {
     const result = await pool.query(queryText, params);
     res.json({ success: true, data: result.rows });
   } catch (err) {
-    console.error('Error getAllSantri:', err);
     res.status(500).json({ success: false, message: 'Server error retrieving santri data.' });
   }
 });
 
-// GET /api/santri/:id
-app.get('/api/santri/:id', requireAuth, async (req, res) => {
+router.get('/santri/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const santriResult = await pool.query(`
@@ -327,8 +324,7 @@ app.get('/api/santri/:id', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/santri
-app.post('/api/santri', requireAuth, async (req, res) => {
+router.post('/santri', requireAuth, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -375,8 +371,7 @@ app.post('/api/santri', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/santri/:id
-app.put('/api/santri/:id', requireAuth, async (req, res) => {
+router.put('/santri/:id', requireAuth, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -423,8 +418,7 @@ app.put('/api/santri/:id', requireAuth, async (req, res) => {
   }
 });
 
-// DELETE /api/santri/:id
-app.delete('/api/santri/:id', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/santri/:id', requireAuth, requireAdmin, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -450,12 +444,8 @@ app.delete('/api/santri/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// KARTU ROUTES
-// ════════════════════════════════════════════════════════════════════════════
-
-// GET /api/kartu
-app.get('/api/kartu', requireAuth, async (req, res) => {
+// ─── KARTU ROUTES ──────────────────────────────────────────────────────────
+router.get('/kartu', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT k.*, s.nama as santri_nama, s.nis as santri_nis 
@@ -468,8 +458,7 @@ app.get('/api/kartu', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/kartu/:uid
-app.get('/api/kartu/:uid', requireAuth, async (req, res) => {
+router.get('/kartu/:uid', requireAuth, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT k.*, s.nis, s.nama, s.kelas, s.saldo, s.status as santri_status 
@@ -485,8 +474,7 @@ app.get('/api/kartu/:uid', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/kartu
-app.post('/api/kartu', requireAuth, async (req, res) => {
+router.post('/kartu', requireAuth, async (req, res) => {
   try {
     const { card_uid, tipe_kartu } = req.body;
     if (!card_uid || !tipe_kartu) return res.status(400).json({ success: false, message: 'Card UID and Tipe Kartu are required.' });
@@ -499,8 +487,7 @@ app.post('/api/kartu', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/kartu/assign
-app.post('/api/kartu/assign', requireAuth, async (req, res) => {
+router.post('/kartu/assign', requireAuth, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -529,8 +516,7 @@ app.post('/api/kartu/assign', requireAuth, async (req, res) => {
   }
 });
 
-// PUT /api/kartu/:id/status
-app.put('/api/kartu/:id/status', requireAuth, async (req, res) => {
+router.put('/kartu/:id/status', requireAuth, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['aktif', 'hilang', 'nonaktif'].includes(status)) return res.status(400).json({ success: false, message: 'Invalid card status.' });
@@ -542,12 +528,8 @@ app.put('/api/kartu/:id/status', requireAuth, async (req, res) => {
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// TRANSAKSI ROUTES
-// ════════════════════════════════════════════════════════════════════════════
-
-// POST /api/transaksi
-app.post('/api/transaksi', requireAuth, async (req, res) => {
+// ─── TRANSAKSI ROUTES ──────────────────────────────────────────────────────
+router.post('/transaksi', requireAuth, async (req, res) => {
   const connection = await db.getConnection();
   try {
     await connection.beginTransaction();
@@ -607,8 +589,7 @@ app.post('/api/transaksi', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/transaksi
-app.get('/api/transaksi', requireAuth, async (req, res) => {
+router.get('/transaksi', requireAuth, async (req, res) => {
   try {
     const { tipe, search, start_date, end_date, limit = 50, offset = 0 } = req.query;
     let queryText = `
@@ -632,22 +613,18 @@ app.get('/api/transaksi', requireAuth, async (req, res) => {
 
     const result = await pool.query(queryText, params);
 
-    // Count query
     let countQuery = `SELECT COUNT(*) as count FROM transaksi t JOIN santri s ON t.santri_id = s.id`;
     const countParams = [...params.slice(0, -2)];
-    const countConditions = conditions.map((c, i) => c);
-    if (countConditions.length > 0) countQuery += ' WHERE ' + countConditions.join(' AND ');
+    if (conditions.length > 0) countQuery += ' WHERE ' + conditions.join(' AND ');
     const countResult = await pool.query(countQuery, countParams);
 
-    res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0].count || 0) });
+    res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0]?.count || 0) });
   } catch (err) {
-    console.error('Error getTransactionHistory:', err);
     res.status(500).json({ success: false, message: 'Server error retrieving transaction history.' });
   }
 });
 
-// GET /api/transaksi/stats
-app.get('/api/transaksi/stats', requireAuth, async (req, res) => {
+router.get('/transaksi/stats', requireAuth, async (req, res) => {
   try {
     const saldoRes = await pool.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL`);
     const transStats = await pool.query(`
@@ -668,15 +645,15 @@ app.get('/api/transaksi/stats', requireAuth, async (req, res) => {
     `);
     res.json({
       success: true, data: {
-        total_santri: parseInt(saldoRes.rows[0].total_santri || 0),
-        total_outstanding_saldo: parseFloat(saldoRes.rows[0].total_saldo || 0),
-        total_topup: parseFloat(transStats.rows[0].total_topup || 0),
-        total_pembayaran: parseFloat(transStats.rows[0].total_pembayaran || 0),
-        total_penarikan: parseFloat(transStats.rows[0].total_penarikan || 0),
-        count_topup: parseInt(transStats.rows[0].count_topup || 0),
-        count_pembayaran: parseInt(transStats.rows[0].count_pembayaran || 0),
-        count_penarikan: parseInt(transStats.rows[0].count_penarikan || 0),
-        total_kartu_aktif: parseInt(cardsRes.rows[0].total_kartu || 0),
+        total_santri: parseInt(saldoRes.rows[0]?.total_santri || 0),
+        total_outstanding_saldo: parseFloat(saldoRes.rows[0]?.total_saldo || 0),
+        total_topup: parseFloat(transStats.rows[0]?.total_topup || 0),
+        total_pembayaran: parseFloat(transStats.rows[0]?.total_pembayaran || 0),
+        total_penarikan: parseFloat(transStats.rows[0]?.total_penarikan || 0),
+        count_topup: parseInt(transStats.rows[0]?.count_topup || 0),
+        count_pembayaran: parseInt(transStats.rows[0]?.count_pembayaran || 0),
+        count_penarikan: parseInt(transStats.rows[0]?.count_penarikan || 0),
+        total_kartu_aktif: parseInt(cardsRes.rows[0]?.total_kartu || 0),
         transaksi_terbaru: quickTrans.rows
       }
     });
@@ -685,8 +662,7 @@ app.get('/api/transaksi/stats', requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/transaksi/detail/:id
-app.get('/api/transaksi/detail/:id', requireAuth, async (req, res) => {
+router.get('/transaksi/detail/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { tipe, bulan, tahun, limit = 50, offset = 0 } = req.query;
@@ -745,15 +721,13 @@ app.get('/api/transaksi/detail/:id', requireAuth, async (req, res) => {
       FROM transaksi WHERE santri_id = $1
     `, [id]);
 
-    res.json({ success: true, data: { santri, statistik: statsResult.rows[0], transaksi: transResult.rows, total_transaksi: parseInt(countResult.rows[0].total || 0) } });
+    res.json({ success: true, data: { santri, statistik: statsResult.rows[0], transaksi: transResult.rows, total_transaksi: parseInt(countResult.rows[0]?.total || 0) } });
   } catch (err) {
-    console.error('Error getDetailSantri:', err);
     res.status(500).json({ success: false, message: 'Server error loading student detail.' });
   }
 });
 
-// GET /api/transaksi/rekap/:id
-app.get('/api/transaksi/rekap/:id', requireAuth, async (req, res) => {
+router.get('/transaksi/rekap/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { bulan, tahun } = req.query;
@@ -798,22 +772,17 @@ app.get('/api/transaksi/rekap/:id', requireAuth, async (req, res) => {
       success: true, data: {
         santri: { id: santri.id, nis: santri.nis, nama: santri.nama, kelas: santri.kelas, saldo_saat_ini: parseFloat(santri.saldo) },
         periode: { bulan: bln, tahun: thn, nama_bulan: namaBulanID[bln], label: `${namaBulanID[bln]} ${thn}` },
-        ringkasan: { saldo_awal_bulan: saldoAwalBulan, total_topup: parseFloat(agregat.rows[0].total_topup || 0), total_pembayaran: parseFloat(agregat.rows[0].total_pembayaran || 0), total_penarikan: parseFloat(agregat.rows[0].total_penarikan || 0), saldo_akhir_bulan: saldoAkhirBulan, total_transaksi: parseInt(agregat.rows[0].total_transaksi || 0), count_topup: parseInt(agregat.rows[0].count_topup || 0), count_pembayaran: parseInt(agregat.rows[0].count_pembayaran || 0), count_penarikan: parseInt(agregat.rows[0].count_penarikan || 0) },
+        ringkasan: { saldo_awal_bulan: saldoAwalBulan, total_topup: parseFloat(agregat.rows[0]?.total_topup || 0), total_pembayaran: parseFloat(agregat.rows[0]?.total_pembayaran || 0), total_penarikan: parseFloat(agregat.rows[0]?.total_penarikan || 0), saldo_akhir_bulan: saldoAkhirBulan, total_transaksi: parseInt(agregat.rows[0]?.total_transaksi || 0), count_topup: parseInt(agregat.rows[0]?.count_topup || 0), count_pembayaran: parseInt(agregat.rows[0]?.count_pembayaran || 0), count_penarikan: parseInt(agregat.rows[0]?.count_penarikan || 0) },
         transaksi: daftarTransaksi.rows
       }
     });
   } catch (err) {
-    console.error('Error getRekapBulanan:', err);
     res.status(500).json({ success: false, message: 'Server error loading monthly recap.' });
   }
 });
 
-// ════════════════════════════════════════════════════════════════════════════
-// USERS ROUTES
-// ════════════════════════════════════════════════════════════════════════════
-
-// GET /api/users
-app.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
+// ─── USERS ROUTES ──────────────────────────────────────────────────────────
+router.get('/users', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT id, name, username, role, status, created_at FROM users ORDER BY created_at ASC');
     res.json({ success: true, data: rows });
@@ -822,8 +791,7 @@ app.get('/api/users', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// POST /api/users
-app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
+router.post('/users', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { name, username, password, role } = req.body;
     if (!name || !username || !password || !role) return res.status(400).json({ success: false, message: 'Semua field wajib diisi.' });
@@ -840,8 +808,7 @@ app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/users/:id
-app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
+router.put('/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { name, role } = req.body;
     if (!name || !role) return res.status(400).json({ success: false, message: 'Nama dan role wajib diisi.' });
@@ -854,8 +821,7 @@ app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/users/:id/status
-app.put('/api/users/:id/status', requireAuth, requireAdmin, async (req, res) => {
+router.put('/users/:id/status', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['aktif', 'nonaktif'].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid.' });
@@ -868,20 +834,18 @@ app.put('/api/users/:id/status', requireAuth, requireAdmin, async (req, res) => 
   }
 });
 
-// GET /api/users/:id/check-transactions
-app.get('/api/users/:id/check-transactions', requireAuth, requireAdmin, async (req, res) => {
+router.get('/users/:id/check-transactions', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { rows: user } = await pool.query('SELECT username, name FROM users WHERE id = $1', [req.params.id]);
     if (user.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
     const { rows: txCheck } = await pool.query('SELECT COUNT(*) AS cnt FROM transaksi WHERE operator ILIKE $1', [`%${user[0].name}%`]);
-    res.json({ success: true, data: { hasTransactions: parseInt(txCheck[0].cnt) > 0, count: parseInt(txCheck[0].cnt) } });
+    res.json({ success: true, data: { hasTransactions: parseInt(txCheck[0]?.cnt || 0) > 0, count: parseInt(txCheck[0]?.cnt || 0) } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memeriksa riwayat transaksi.' });
   }
 });
 
-// DELETE /api/users/:id
-app.delete('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
+router.delete('/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
@@ -892,8 +856,7 @@ app.delete('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
-// POST /api/users/change-password
-app.post('/api/users/change-password', requireAuth, async (req, res) => {
+router.post('/users/change-password', requireAuth, async (req, res) => {
   try {
     const { username, oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword || newPassword.length < 6) return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter.' });
@@ -909,12 +872,20 @@ app.post('/api/users/change-password', requireAuth, async (req, res) => {
   }
 });
 
-// POST /api/kartu/scan (WebSocket broadcast fallback for Vercel)
-app.post('/api/kartu/scan', (req, res) => {
+router.post('/kartu/scan', (req, res) => {
   const { card_uid, tipe_kartu } = req.body;
   if (!card_uid) return res.status(400).json({ success: false, message: 'Card UID is required.' });
-  // In serverless mode, WebSocket is not available — client should poll /api/kartu/:uid instead
-  res.json({ success: true, message: 'Card scan received (polling mode).', data: { card_uid, tipe_kartu: tipe_kartu || 'RFID' } });
+  res.json({ success: true, message: 'Card scan received.', data: { card_uid, tipe_kartu: tipe_kartu || 'RFID' } });
+});
+
+// Mount router on both /api and / so all incoming paths match
+app.use('/api', router);
+app.use('/', router);
+
+// Global Error Handler (ensure JSON is always returned instead of HTML 500)
+app.use((err, req, res, next) => {
+  console.error('API Error:', err);
+  res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
 });
 
 module.exports = app;
