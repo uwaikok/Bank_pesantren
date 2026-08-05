@@ -392,7 +392,7 @@ router.put('/santri/:id', requireAuth, async (req, res) => {
       const [currentCard] = await connection.execute('SELECT * FROM kartu WHERE santri_id = $1 AND status = \'aktif\'', [id]);
       const oldCardUid = currentCard.length > 0 ? currentCard[0].card_uid : null;
       if (card_uid !== oldCardUid) {
-        await connection.execute('UPDATE kartu SET santri_id = NULL WHERE santri_id = $1', [id]);
+        await connection.execute('UPDATE kartu SET santri_id = NULL, status = \'nonaktif\', updated_at = NOW() WHERE santri_id = $1', [id]);
         if (card_uid) {
           const [checkCard] = await connection.execute('SELECT * FROM kartu WHERE card_uid = $1', [card_uid]);
           if (checkCard.length > 0) {
@@ -627,7 +627,7 @@ router.get('/transaksi', requireAuth, async (req, res) => {
 
 router.get('/transaksi/stats', requireAuth, async (req, res) => {
   try {
-    const saldoRes = await pool.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL`);
+    const saldoRes = await pool.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL AND status = 'aktif'`);
     const transStats = await pool.query(`
       SELECT 
         SUM(CASE WHEN tipe_transaksi = 'topup' THEN jumlah ELSE 0 END) as total_topup,
@@ -663,7 +663,7 @@ router.get('/transaksi/stats', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/transaksi/detail/:id', requireAuth, async (req, res) => {
+router.get(['/transaksi/detail/:id', '/santri/:id/detail'], requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { tipe, bulan, tahun, limit = 50, offset = 0 } = req.query;
@@ -678,7 +678,7 @@ router.get('/transaksi/detail/:id', requireAuth, async (req, res) => {
 
     let transQuery = `
       SELECT t.*,
-        TO_CHAR(t.created_at, 'Day') as hari_nama,
+        TRIM(TO_CHAR(t.created_at, 'Day')) as hari_nama,
         TO_CHAR(t.created_at, 'DD Month YYYY') as tanggal_format,
         TO_CHAR(t.created_at, 'HH24:MI') as jam_format,
         TO_CHAR(t.created_at, 'YYYY-MM') as bulan_tahun
@@ -728,7 +728,7 @@ router.get('/transaksi/detail/:id', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/transaksi/rekap/:id', requireAuth, async (req, res) => {
+router.get(['/transaksi/rekap/:id', '/santri/:id/rekap'], requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
     const { bulan, tahun } = req.query;
@@ -762,7 +762,7 @@ router.get('/transaksi/rekap/:id', requireAuth, async (req, res) => {
 
     const daftarTransaksi = await pool.query(`
       SELECT t.*,
-        TO_CHAR(t.created_at, 'Day') as hari_nama,
+        TRIM(TO_CHAR(t.created_at, 'Day')) as hari_nama,
         TO_CHAR(t.created_at, 'DD Month YYYY') as tanggal_format,
         TO_CHAR(t.created_at, 'HH24:MI') as jam_format
       FROM transaksi t WHERE t.santri_id = $1 AND EXTRACT(MONTH FROM t.created_at) = $2 AND EXTRACT(YEAR FROM t.created_at) = $3 ORDER BY t.created_at ASC
