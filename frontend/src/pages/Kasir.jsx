@@ -11,6 +11,7 @@ import {
   AlertCircle,
   HelpCircle
 } from 'lucide-react';
+import { formatReceiptWIB } from '../utils/timeWIB';
 
 export default function Kasir() {
   const { registerListener } = useCardReader();
@@ -213,7 +214,7 @@ export default function Kasir() {
         </div>
         <div class="divider"></div>
         <div class="flex-between">
-          <span>Tgl: ${new Date(rcpt.transaksi.created_at || Date.now()).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
+          <span>Tgl: ${formatReceiptWIB(rcpt.transaksi.created_at || Date.now())}</span>
         </div>
         <div class="flex-between">
           <span>NIS: ${rcpt.santri.nis}</span>

@@ -8,6 +8,7 @@ import {
   SlidersHorizontal,
   Calendar
 } from 'lucide-react';
+import { formatDateWIB, formatTimeWIB } from '../utils/timeWIB';
 
 export default function Riwayat({ initialFilter = '', onFilterApplied }) {
   const [history, setHistory] = useState([]);
@@ -273,9 +274,9 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
                       <td className={`py-3.5 px-5 whitespace-nowrap text-slate-400 ${borderLeftClass}`}>
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3 h-3" />
-                          <span>{new Date(tx.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                          <span>{formatDateWIB(tx.created_at)}</span>
                           <span className="text-slate-300">•</span>
-                          <span>{new Date(tx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                          <span>{formatTimeWIB(tx.created_at)}</span>
                         </div>
                       </td>
 

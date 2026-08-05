@@ -12,7 +12,8 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-  multipleStatements: true // Essential to execute schema.sql script
+  multipleStatements: true, // Essential to execute schema.sql script
+  timezone: '+07:00'
 });
 
 // Test connection, auto-create database & auto-migration

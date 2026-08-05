@@ -301,7 +301,7 @@ router.get('/santri', requireAuth, async (req, res) => {
     if (conditions.length > 0) queryText += ' WHERE ' + conditions.join(' AND ');
     queryText += ' ORDER BY s.nama ASC';
 
-    const result = await pool.query(queryText, params);
+    const result = await db.query(queryText, params);
     res.json({ success: true, data: result.rows });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error retrieving santri data.' });
@@ -311,14 +311,14 @@ router.get('/santri', requireAuth, async (req, res) => {
 router.get('/santri/:id', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const santriResult = await pool.query(`
+    const santriResult = await db.query(`
       SELECT s.*, k.card_uid, k.tipe_kartu, k.status as kartu_status 
       FROM santri s 
       LEFT JOIN kartu k ON s.id = k.santri_id AND k.status = 'aktif'
       WHERE s.id = $1 AND s.deleted_at IS NULL
     `, [id]);
     if (santriResult.rows.length === 0) return res.status(404).json({ success: false, message: 'Santri tidak ditemukan.' });
-    const transResult = await pool.query(`SELECT * FROM transaksi WHERE santri_id = $1 ORDER BY created_at DESC LIMIT 10`, [id]);
+    const transResult = await db.query(`SELECT * FROM transaksi WHERE santri_id = $1 ORDER BY created_at DESC LIMIT 10`, [id]);
     res.json({ success: true, data: { ...santriResult.rows[0], riwayat_transaksi: transResult.rows } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error retrieving details.' });
@@ -448,7 +448,7 @@ router.delete('/santri/:id', requireAuth, requireAdmin, async (req, res) => {
 // ─── KARTU ROUTES ──────────────────────────────────────────────────────────
 router.get('/kartu', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(`
+    const result = await db.query(`
       SELECT k.*, s.nama as santri_nama, s.nis as santri_nis 
       FROM kartu k LEFT JOIN santri s ON k.santri_id = s.id
       ORDER BY k.id DESC
@@ -461,7 +461,7 @@ router.get('/kartu', requireAuth, async (req, res) => {
 
 router.get('/kartu/:uid', requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(`
+    const result = await db.query(`
       SELECT k.*, s.nis, s.nama, s.kelas, s.saldo, s.status as santri_status 
       FROM kartu k LEFT JOIN santri s ON k.santri_id = s.id
       WHERE k.card_uid = $1
@@ -479,9 +479,9 @@ router.post('/kartu', requireAuth, async (req, res) => {
   try {
     const { card_uid, tipe_kartu } = req.body;
     if (!card_uid || !tipe_kartu) return res.status(400).json({ success: false, message: 'Card UID and Tipe Kartu are required.' });
-    const check = await pool.query('SELECT * FROM kartu WHERE card_uid = $1', [card_uid]);
+    const check = await db.query('SELECT * FROM kartu WHERE card_uid = $1', [card_uid]);
     if (check.rows.length > 0) return res.status(400).json({ success: false, message: 'Kartu sudah terdaftar di sistem.' });
-    const result = await pool.query(`INSERT INTO kartu (card_uid, tipe_kartu, status) VALUES ($1, $2, 'aktif') RETURNING *`, [card_uid, tipe_kartu]);
+    const result = await db.query(`INSERT INTO kartu (card_uid, tipe_kartu, status) VALUES ($1, $2, 'aktif') RETURNING *`, [card_uid, tipe_kartu]);
     res.status(201).json({ success: true, message: 'Kartu registered successfully.', data: result.rows[0] });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Server error registering card.' });
@@ -521,7 +521,7 @@ router.put('/kartu/:id/status', requireAuth, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['aktif', 'hilang', 'nonaktif'].includes(status)) return res.status(400).json({ success: false, message: 'Invalid card status.' });
-    const result = await pool.query('UPDATE kartu SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *', [status, req.params.id]);
+    const result = await db.query('UPDATE kartu SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING *', [status, req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ success: false, message: 'Card not found.' });
     res.json({ success: true, message: 'Card status updated.', data: result.rows[0] });
   } catch (err) {
@@ -612,19 +612,19 @@ router.get(['/transaksi', '/transaksi/history'], requireAuth, async (req, res) =
     queryText += ` ORDER BY t.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(parseInt(limit), parseInt(offset));
 
-    const result = await pool.query(queryText, params);
+    const result = await db.query(queryText, params);
 
     let countQuery = `SELECT COUNT(*) as count FROM transaksi t JOIN santri s ON t.santri_id = s.id`;
     const countParams = [...params.slice(0, -2)];
     if (conditions.length > 0) countQuery += ' WHERE ' + conditions.join(' AND ');
-    const countResult = await pool.query(countQuery, countParams);
+    const countResult = await db.query(countQuery, countParams);
 
     let sumQuery = `
       SELECT SUM(CASE WHEN t.tipe_transaksi = 'topup' THEN t.jumlah ELSE -t.jumlah END) as total_flow
       FROM transaksi t JOIN santri s ON t.santri_id = s.id
     `;
     if (conditions.length > 0) sumQuery += ' WHERE ' + conditions.join(' AND ');
-    const sumResult = await pool.query(sumQuery, countParams);
+    const sumResult = await db.query(sumQuery, countParams);
     const totalFlow = parseFloat(sumResult.rows[0]?.total_flow || 0);
 
     res.json({ success: true, data: result.rows, total: parseInt(countResult.rows[0]?.count || 0), totalFlow });
@@ -635,8 +635,8 @@ router.get(['/transaksi', '/transaksi/history'], requireAuth, async (req, res) =
 
 router.get('/transaksi/stats', requireAuth, async (req, res) => {
   try {
-    const saldoRes = await pool.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL AND status = 'aktif'`);
-    const transStats = await pool.query(`
+    const saldoRes = await db.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL AND status = 'aktif'`);
+    const transStats = await db.query(`
       SELECT 
         SUM(CASE WHEN tipe_transaksi = 'topup' THEN jumlah ELSE 0 END) as total_topup,
         SUM(CASE WHEN tipe_transaksi = 'pembayaran' THEN jumlah ELSE 0 END) as total_pembayaran,
@@ -646,8 +646,8 @@ router.get('/transaksi/stats', requireAuth, async (req, res) => {
         COUNT(CASE WHEN tipe_transaksi = 'penarikan' THEN 1 END) as count_penarikan
       FROM transaksi
     `);
-    const cardsRes = await pool.query(`SELECT COUNT(*) as total_kartu FROM kartu WHERE status = 'aktif'`);
-    const quickTrans = await pool.query(`
+    const cardsRes = await db.query(`SELECT COUNT(*) as total_kartu FROM kartu WHERE status = 'aktif'`);
+    const quickTrans = await db.query(`
       SELECT t.*, s.nama as santri_nama, s.nis as santri_nis
       FROM transaksi t JOIN santri s ON t.santri_id = s.id
       ORDER BY t.created_at DESC LIMIT 5
@@ -676,7 +676,7 @@ router.get(['/transaksi/detail/:id', '/santri/:id/detail'], requireAuth, async (
     const { id } = req.params;
     const { tipe, bulan, tahun, limit = 50, offset = 0 } = req.query;
 
-    const santriResult = await pool.query(`
+    const santriResult = await db.query(`
       SELECT s.*, k.card_uid, k.tipe_kartu, k.status as kartu_status, k.id as kartu_id
       FROM santri s LEFT JOIN kartu k ON s.id = k.santri_id AND k.status = 'aktif'
       WHERE s.id = $1
@@ -686,10 +686,10 @@ router.get(['/transaksi/detail/:id', '/santri/:id/detail'], requireAuth, async (
 
     let transQuery = `
       SELECT t.*,
-        TRIM(TO_CHAR(t.created_at, 'Day')) as hari_nama,
-        TO_CHAR(t.created_at, 'DD Month YYYY') as tanggal_format,
-        TO_CHAR(t.created_at, 'HH24:MI') as jam_format,
-        TO_CHAR(t.created_at, 'YYYY-MM') as bulan_tahun
+        TRIM(TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'Day')) as hari_nama,
+        TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'DD Month YYYY') as tanggal_format,
+        TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'HH24:MI') as jam_format,
+        TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM') as bulan_tahun
       FROM transaksi t WHERE t.santri_id = $1
     `;
     const transParams = [id];
@@ -709,14 +709,14 @@ router.get(['/transaksi/detail/:id', '/santri/:id/detail'], requireAuth, async (
       countParams.push(parseInt(bulan)); countQuery += ` AND EXTRACT(MONTH FROM t.created_at) = $${countParams.length}`;
       countParams.push(parseInt(tahun)); countQuery += ` AND EXTRACT(YEAR FROM t.created_at) = $${countParams.length}`;
     }
-    const countResult = await pool.query(countQuery, countParams);
+    const countResult = await db.query(countQuery, countParams);
 
     transParams.push(parseInt(limit)); transQuery += ` ORDER BY t.created_at DESC LIMIT $${transParams.length}`;
     transParams.push(parseInt(offset)); transQuery += ` OFFSET $${transParams.length}`;
 
-    const transResult = await pool.query(transQuery, transParams);
+    const transResult = await db.query(transQuery, transParams);
 
-    const statsResult = await pool.query(`
+    const statsResult = await db.query(`
       SELECT 
         SUM(CASE WHEN tipe_transaksi = 'topup' THEN jumlah ELSE 0 END) as total_topup,
         SUM(CASE WHEN tipe_transaksi = 'pembayaran' THEN jumlah ELSE 0 END) as total_pembayaran,
@@ -743,21 +743,21 @@ router.get(['/transaksi/rekap/:id', '/santri/:id/rekap'], requireAuth, async (re
     if (!bulan || !tahun) return res.status(400).json({ success: false, message: 'Parameter bulan dan tahun wajib diisi.' });
 
     const bln = parseInt(bulan); const thn = parseInt(tahun);
-    const santriRes = await pool.query('SELECT * FROM santri WHERE id = $1', [id]);
+    const santriRes = await db.query('SELECT * FROM santri WHERE id = $1', [id]);
     if (santriRes.rows.length === 0) return res.status(404).json({ success: false, message: 'Santri tidak ditemukan.' });
     const santri = santriRes.rows[0];
 
-    const firstTransResult = await pool.query(`
+    const firstTransResult = await db.query(`
       SELECT saldo_sebelum FROM transaksi WHERE santri_id = $1 AND EXTRACT(MONTH FROM created_at) = $2 AND EXTRACT(YEAR FROM created_at) = $3 ORDER BY created_at ASC LIMIT 1
     `, [id, bln, thn]);
     const saldoAwalBulan = firstTransResult.rows.length > 0 ? parseFloat(firstTransResult.rows[0].saldo_sebelum) : parseFloat(santri.saldo);
 
-    const lastTransResult = await pool.query(`
+    const lastTransResult = await db.query(`
       SELECT saldo_sesudah FROM transaksi WHERE santri_id = $1 AND EXTRACT(MONTH FROM created_at) = $2 AND EXTRACT(YEAR FROM created_at) = $3 ORDER BY created_at DESC LIMIT 1
     `, [id, bln, thn]);
     const saldoAkhirBulan = lastTransResult.rows.length > 0 ? parseFloat(lastTransResult.rows[0].saldo_sesudah) : parseFloat(santri.saldo);
 
-    const agregat = await pool.query(`
+    const agregat = await db.query(`
       SELECT SUM(CASE WHEN tipe_transaksi = 'topup' THEN jumlah ELSE 0 END) as total_topup,
              SUM(CASE WHEN tipe_transaksi = 'pembayaran' THEN jumlah ELSE 0 END) as total_pembayaran,
              SUM(CASE WHEN tipe_transaksi = 'penarikan' THEN jumlah ELSE 0 END) as total_penarikan,
@@ -768,11 +768,11 @@ router.get(['/transaksi/rekap/:id', '/santri/:id/rekap'], requireAuth, async (re
       FROM transaksi WHERE santri_id = $1 AND EXTRACT(MONTH FROM created_at) = $2 AND EXTRACT(YEAR FROM created_at) = $3
     `, [id, bln, thn]);
 
-    const daftarTransaksi = await pool.query(`
+    const daftarTransaksi = await db.query(`
       SELECT t.*,
-        TRIM(TO_CHAR(t.created_at, 'Day')) as hari_nama,
-        TO_CHAR(t.created_at, 'DD Month YYYY') as tanggal_format,
-        TO_CHAR(t.created_at, 'HH24:MI') as jam_format
+        TRIM(TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'Day')) as hari_nama,
+        TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'DD Month YYYY') as tanggal_format,
+        TO_CHAR(t.created_at AT TIME ZONE 'UTC' AT TIME ZONE 'Asia/Jakarta', 'HH24:MI') as jam_format
       FROM transaksi t WHERE t.santri_id = $1 AND EXTRACT(MONTH FROM t.created_at) = $2 AND EXTRACT(YEAR FROM t.created_at) = $3 ORDER BY t.created_at ASC
     `, [id, bln, thn]);
 
@@ -793,7 +793,7 @@ router.get(['/transaksi/rekap/:id', '/santri/:id/rekap'], requireAuth, async (re
 // ─── USERS ROUTES ──────────────────────────────────────────────────────────
 router.get('/users', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id, name, username, role, status, created_at FROM users ORDER BY created_at ASC');
+    const { rows } = await db.query('SELECT id, name, username, role, status, created_at FROM users ORDER BY created_at ASC');
     res.json({ success: true, data: rows });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memuat daftar pengguna.' });
@@ -805,12 +805,12 @@ router.post('/users', requireAuth, requireAdmin, async (req, res) => {
     const { name, username, password, role } = req.body;
     if (!name || !username || !password || !role) return res.status(400).json({ success: false, message: 'Semua field wajib diisi.' });
     if (password.length < 6) return res.status(400).json({ success: false, message: 'Password minimal 6 karakter.' });
-    const { rows: existing } = await pool.query('SELECT id FROM users WHERE username = $1', [username]);
+    const { rows: existing } = await db.query('SELECT id FROM users WHERE username = $1', [username]);
     if (existing.length > 0) return res.status(409).json({ success: false, message: `Username "${username}" sudah digunakan.` });
     const allowedRoles = ['Administrator', 'Pengurus Koperasi', 'Kasir'];
     if (!allowedRoles.includes(role)) return res.status(400).json({ success: false, message: 'Role tidak valid.' });
     const hashedPassword = await bcrypt.hash(password, 12);
-    await pool.query(`INSERT INTO users (name, username, password_hash, role, status) VALUES ($1, $2, $3, $4, 'aktif')`, [name, username, hashedPassword, role]);
+    await db.query(`INSERT INTO users (name, username, password_hash, role, status) VALUES ($1, $2, $3, $4, 'aktif')`, [name, username, hashedPassword, role]);
     res.status(201).json({ success: true, message: `Akun ${name} berhasil dibuat.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal membuat akun pengurus.' });
@@ -821,9 +821,9 @@ router.put('/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { name, role } = req.body;
     if (!name || !role) return res.status(400).json({ success: false, message: 'Nama dan role wajib diisi.' });
-    const { rows } = await pool.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
+    const { rows } = await db.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
-    await pool.query('UPDATE users SET name = $1, role = $2, updated_at = NOW() WHERE id = $3', [name, role, req.params.id]);
+    await db.query('UPDATE users SET name = $1, role = $2, updated_at = NOW() WHERE id = $3', [name, role, req.params.id]);
     res.json({ success: true, message: 'Data pengurus berhasil diperbarui.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memperbarui akun pengurus.' });
@@ -834,9 +834,9 @@ router.put('/users/:id/status', requireAuth, requireAdmin, async (req, res) => {
   try {
     const { status } = req.body;
     if (!['aktif', 'nonaktif'].includes(status)) return res.status(400).json({ success: false, message: 'Status tidak valid.' });
-    const { rows } = await pool.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
+    const { rows } = await db.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
-    await pool.query('UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.id]);
+    await db.query('UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2', [status, req.params.id]);
     res.json({ success: true, message: `Status akun berhasil diubah menjadi ${status}.` });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal mengubah status akun.' });
@@ -845,9 +845,9 @@ router.put('/users/:id/status', requireAuth, requireAdmin, async (req, res) => {
 
 router.get('/users/:id/check-transactions', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { rows: user } = await pool.query('SELECT username, name FROM users WHERE id = $1', [req.params.id]);
+    const { rows: user } = await db.query('SELECT username, name FROM users WHERE id = $1', [req.params.id]);
     if (user.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
-    const { rows: txCheck } = await pool.query('SELECT COUNT(*) AS cnt FROM transaksi WHERE operator ILIKE $1', [`%${user[0].name}%`]);
+    const { rows: txCheck } = await db.query('SELECT COUNT(*) AS cnt FROM transaksi WHERE operator ILIKE $1', [`%${user[0].name}%`]);
     res.json({ success: true, data: { hasTransactions: parseInt(txCheck[0]?.cnt || 0) > 0, count: parseInt(txCheck[0]?.cnt || 0) } });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memeriksa riwayat transaksi.' });
@@ -856,9 +856,9 @@ router.get('/users/:id/check-transactions', requireAuth, requireAdmin, async (re
 
 router.delete('/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const { rows } = await pool.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
+    const { rows } = await db.query('SELECT id FROM users WHERE id = $1', [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
-    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    await db.query('DELETE FROM users WHERE id = $1', [req.params.id]);
     res.json({ success: true, message: 'Akun pengurus berhasil dihapus.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal menghapus akun pengurus.' });
@@ -869,12 +869,12 @@ router.post('/users/change-password', requireAuth, async (req, res) => {
   try {
     const { username, oldPassword, newPassword } = req.body;
     if (!oldPassword || !newPassword || newPassword.length < 6) return res.status(400).json({ success: false, message: 'Password baru minimal 6 karakter.' });
-    const { rows } = await pool.query('SELECT id, password_hash FROM users WHERE username = $1', [username]);
+    const { rows } = await db.query('SELECT id, password_hash FROM users WHERE username = $1', [username]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
     const isMatch = await bcrypt.compare(oldPassword, rows[0].password_hash);
     if (!isMatch) return res.status(401).json({ success: false, message: 'Password lama tidak sesuai.' });
     const newHash = await bcrypt.hash(newPassword, 12);
-    await pool.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newHash, rows[0].id]);
+    await db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2', [newHash, rows[0].id]);
     res.json({ success: true, message: 'Password berhasil diperbarui.' });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Gagal memperbarui password.' });

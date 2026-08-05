@@ -5,6 +5,7 @@ import {
   TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Clock
 } from 'lucide-react';
 import logo from '../logo.png';
+import { formatReceiptWIB } from '../utils/timeWIB';
 
 // Utilitas format Rupiah
 const fmt = (n) => new Intl.NumberFormat('id-ID', {
@@ -343,7 +344,7 @@ export default function DetailSantri({ santriId, onBack }) {
             <td class="meta-value">${rekap.santri.kelas}</td>
             <td class="meta-label">Tanggal Unduh Cetak</td>
             <td class="meta-colon">:</td>
-            <td class="meta-value">${new Date().toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })} WIB</td>
+            <td class="meta-value">${formatReceiptWIB(Date.now())} WIB</td>
           </tr>
         </table>
 

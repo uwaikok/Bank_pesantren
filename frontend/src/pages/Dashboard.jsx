@@ -10,6 +10,7 @@ import {
   X,
   Search
 } from 'lucide-react';
+import { formatTimeWIB } from '../utils/timeWIB';
 
 export default function Dashboard({ setActivePage }) {
   const [stats, setStats] = useState(null);
@@ -294,7 +295,7 @@ export default function Dashboard({ setActivePage }) {
                       }`}>
                         {tx.tipe_transaksi === 'topup' ? '+' : '-'}{formatRupiah(tx.jumlah)}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-semibold">{new Date(tx.created_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</p>
+                      <p className="text-[10px] text-slate-400 font-semibold">{formatTimeWIB(tx.created_at)}</p>
                     </div>
                   </div>
                 ))}
