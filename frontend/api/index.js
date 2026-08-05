@@ -1,12 +1,13 @@
-const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+import express from 'express';
+import cors from 'cors';
+import pg from 'pg';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const { Pool } = pg;
 
 // ─── Database Connection (PostgreSQL / Neon) ───────────────────────────────
 let dbUrl = process.env.DATABASE_URL || '';
-// Strip channel_binding parameter if present as pg module doesn't support it
 if (dbUrl.includes('channel_binding')) {
   dbUrl = dbUrl.replace(/[?&]channel_binding=[^&]*/g, '');
 }
@@ -888,4 +889,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
 });
 
-module.exports = app;
+export default app;
