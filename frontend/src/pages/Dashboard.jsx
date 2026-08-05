@@ -171,9 +171,9 @@ export default function Dashboard({ setActivePage }) {
 
         {/* Flow Stats Summary */}
         <div 
-          onClick={() => setActivePage && setActivePage('riwayat')}
+          onClick={() => setActivePage && setActivePage('riwayat', { filter: 'pembayaran' })}
           className="bg-white p-6 rounded-2xl border-l-4 border-l-orange-500 border-y border-r border-slate-200/80 shadow-sm relative overflow-hidden group hover:-translate-y-1 hover:shadow-md hover:shadow-orange-500/5 transition-all duration-300 cursor-pointer"
-          title="Klik untuk membuka Riwayat Log Belanja"
+          title="Klik untuk membuka Riwayat Log Belanja (difilter ke Pembayaran)"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="bg-orange-50 text-orange-600 p-3 rounded-full shadow-inner flex items-center justify-center">

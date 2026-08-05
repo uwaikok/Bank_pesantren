@@ -42,7 +42,8 @@ export default function DetailSantri({ santriId, onBack }) {
   const now = new Date();
   const [activeTab, setActiveTab] = useState('log');
   const [detail, setDetail] = useState(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingDetail, setLoadingDetail] = useState(true);
+  const [errorDetail, setErrorDetail] = useState(null);
 
   // Filter log aktivitas
   const [filterTipe, setFilterTipe] = useState('');
@@ -61,6 +62,7 @@ export default function DetailSantri({ santriId, onBack }) {
   // ─── Fetch detail / log aktivitas ─────────────────────────
   const fetchDetail = async () => {
     setLoadingDetail(true);
+    setErrorDetail(null);
     try {
       let url = `/api/santri/${santriId}/detail?limit=${logLimit}&offset=${logOffset}`;
       if (filterTipe)  url += `&tipe=${filterTipe}`;
@@ -69,9 +71,17 @@ export default function DetailSantri({ santriId, onBack }) {
 
       const res = await fetch(url);
       const json = await res.json();
-      if (json.success) setDetail(json.data);
-    } catch (e) { console.error(e); }
-    finally { setLoadingDetail(false); }
+      if (json.success) {
+        setDetail(json.data);
+      } else {
+        setErrorDetail(json.message || 'Gagal memuat data santri.');
+      }
+    } catch (e) {
+      console.error(e);
+      setErrorDetail('Koneksi ke server gagal. Periksa koneksi jaringan Anda.');
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   // ─── Fetch rekap bulanan ───────────────────────────────────
@@ -412,11 +422,37 @@ export default function DetailSantri({ santriId, onBack }) {
     }, 500);
   };
 
-  if (!detail) {
+  if (loadingDetail && !detail) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
         <RefreshCw className="w-8 h-8 text-emerald-600 animate-spin" />
         <p className="text-sm font-semibold text-slate-500">Memuat data santri...</p>
+      </div>
+    );
+  }
+
+  if (errorDetail && !detail) {
+    return (
+      <div className="space-y-4">
+        <button
+          onClick={onBack}
+          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-700 transition"
+        >
+          <ArrowLeft className="w-4 h-4" /> Kembali ke Daftar Santri
+        </button>
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-6 rounded-2xl flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-6 h-6 text-rose-500 flex-shrink-0" />
+            <h3 className="font-bold text-base">Gagal Memuat Detail Santri</h3>
+          </div>
+          <p className="text-sm">{errorDetail}</p>
+          <button
+            onClick={fetchDetail}
+            className="w-fit bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-rose-700 transition"
+          >
+            Coba Lagi
+          </button>
+        </div>
       </div>
     );
   }

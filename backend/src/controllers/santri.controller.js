@@ -7,7 +7,7 @@ exports.getAllSantri = async (req, res) => {
     let queryText = `
       SELECT s.*, k.card_uid, k.tipe_kartu, k.status as kartu_status 
       FROM santri s 
-      LEFT JOIN kartu k ON s.id = k.santri_id
+      LEFT JOIN kartu k ON s.id = k.santri_id AND k.status = 'aktif'
     `;
     const params = [];
     const conditions = ['s.deleted_at IS NULL'];
@@ -50,7 +50,7 @@ exports.getSantriById = async (req, res) => {
     const santriResult = await db.query(`
       SELECT s.*, k.card_uid, k.tipe_kartu, k.status as kartu_status 
       FROM santri s 
-      LEFT JOIN kartu k ON s.id = k.santri_id 
+      LEFT JOIN kartu k ON s.id = k.santri_id AND k.status = 'aktif'
       WHERE s.id = ? AND s.deleted_at IS NULL
     `, [id]);
 
@@ -191,9 +191,9 @@ exports.updateSantri = async (req, res) => {
 
     if (card_uid !== undefined) {
       if (card_uid !== oldCardUid) {
-        // Unlink old cards
+        // Unlink old cards and mark them as nonaktif
         await connection.execute(
-          'UPDATE kartu SET santri_id = NULL WHERE santri_id = ?',
+          "UPDATE kartu SET santri_id = NULL, status = 'nonaktif', updated_at = NOW() WHERE santri_id = ?",
           [id]
         );
 

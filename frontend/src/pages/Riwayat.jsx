@@ -9,7 +9,7 @@ import {
   Calendar
 } from 'lucide-react';
 
-export default function Riwayat() {
+export default function Riwayat({ initialFilter = '', onFilterApplied }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -57,6 +57,16 @@ export default function Riwayat() {
   useEffect(() => {
     setOffset(0);
   }, [search, filterType, startDate, endDate]);
+
+  // Apply initial filter when navigated from Dashboard
+  useEffect(() => {
+    if (initialFilter !== undefined && initialFilter !== filterType) {
+      setFilterType(initialFilter);
+      setOffset(0);
+      if (onFilterApplied) onFilterApplied();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialFilter]);
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', {

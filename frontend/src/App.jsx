@@ -40,6 +40,7 @@ export default function App() {
   const [authChecked, setAuthChecked] = useState(false);
   const [activePage, setActivePage] = useState('dashboard');
   const [selectedSantriId, setSelectedSantriId] = useState(null);
+  const [riwayatInitialFilter, setRiwayatInitialFilter] = useState('');
 
   // Cek token yang tersimpan saat aplikasi pertama dimuat
   useEffect(() => {
@@ -101,9 +102,15 @@ export default function App() {
   };
 
   // Override setActivePage agar reset detail saat pindah halaman lain
-  const handleSetActivePage = (page) => {
+  const handleSetActivePage = (page, options = {}) => {
     if (page !== 'detail-santri') {
       setSelectedSantriId(null);
+    }
+    // Support navigasi ke riwayat dengan initial filter
+    if (page === 'riwayat' && options.filter !== undefined) {
+      setRiwayatInitialFilter(options.filter);
+    } else if (page !== 'riwayat') {
+      setRiwayatInitialFilter('');
     }
     setActivePage(page);
   };
@@ -121,7 +128,7 @@ export default function App() {
           ? <DetailSantri santriId={selectedSantriId} onBack={handleBackFromDetail} />
           : <Santri onViewDetail={handleViewDetail} />;
       case 'riwayat':
-        return <Riwayat />;
+        return <Riwayat initialFilter={riwayatInitialFilter} onFilterApplied={() => setRiwayatInitialFilter('')} />;
       case 'profil':
         return <Profil />;
       case 'laporan':

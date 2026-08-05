@@ -22,7 +22,8 @@ export default function Kasir() {
 
   // Form State
   const [txType, setTxType] = useState('pembayaran'); // pembayaran, topup, penarikan
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState(''); // raw digits only, e.g. "5000"
+  const [amountDisplay, setAmountDisplay] = useState(''); // formatted display, e.g. "5.000"
   const [note, setNote] = useState('');
   const [operator, setOperator] = useState('Kasir Utama');
 
@@ -33,6 +34,20 @@ export default function Kasir() {
 
   const [showManualInput, setShowManualInput] = useState(false);
   const [manualUid, setManualUid] = useState('');
+
+  // ─── Helper: format angka jadi tampilan Rupiah tanpa simbol mata uang ───
+  const formatInputRupiah = (rawDigits) => {
+    if (!rawDigits) return '';
+    const num = parseInt(rawDigits, 10);
+    if (isNaN(num)) return '';
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
+
+  // ─── Helper: bersihkan string format ke angka murni ───────────────────
+  const parseRawAmount = (str) => {
+    // Hapus semua karakter bukan digit
+    return str.replace(/[^0-9]/g, '');
+  };
 
   const fetchCardByUid = async (uid) => {
     if (processing) return; // Guard against scans while transaction is processing
@@ -94,13 +109,18 @@ export default function Kasir() {
   };
 
   const handleQuickAmountClick = (val) => {
-    setAmount(val.toString());
-    setSelectedQuickAmount(val.toString());
+    const raw = val.toString();
+    setAmount(raw);
+    setAmountDisplay(formatInputRupiah(raw));
+    setSelectedQuickAmount(raw);
   };
 
-  const handleAmountChange = (val) => {
-    setAmount(val);
-    setSelectedQuickAmount(null); // reset quick selection since user typed manually
+  const handleAmountChange = (inputVal) => {
+    // Strip semua non-digit (titik ribuan, koma, spasi, dll)
+    const raw = parseRawAmount(inputVal);
+    setAmount(raw);
+    setAmountDisplay(formatInputRupiah(raw));
+    setSelectedQuickAmount(null); // reset quick selection
   };
 
   const handleProcessTransaction = async (e) => {
@@ -109,7 +129,8 @@ export default function Kasir() {
       setErrorMsg('Silakan tempelkan kartu RFID/NFC santri terlebih dahulu.');
       return;
     }
-    if (!amount || parseFloat(amount) <= 0) {
+    const numAmount = parseInt(amount, 10);
+    if (!amount || isNaN(numAmount) || numAmount <= 0) {
       setErrorMsg('Masukkan jumlah transaksi yang valid.');
       return;
     }
@@ -123,7 +144,7 @@ export default function Kasir() {
         body: JSON.stringify({
           card_uid: activeCard.card_uid,
           tipe_transaksi: txType,
-          jumlah: parseFloat(amount),
+          jumlah: numAmount,
           keterangan: note,
           operator: operator
         })
@@ -134,6 +155,7 @@ export default function Kasir() {
         setReceipt(json.data);
         // Reset cashier screen for next customer
         setAmount('');
+        setAmountDisplay('');
         setSelectedQuickAmount(null);
         setActiveCard(null);
       } else {
@@ -474,20 +496,37 @@ export default function Kasir() {
             <form onSubmit={handleProcessTransaction} className="space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500">Jumlah Transaksi (Rupiah)</label>
-                <input
-                  type="number"
-                  required
-                  placeholder="Masukkan nominal, misal: 10000"
-                  value={amount}
-                  onChange={(e) => handleAmountChange(e.target.value)}
-                  className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none font-semibold transition-all duration-200 ${
-                    txType === 'topup'
-                      ? 'focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10'
-                      : txType === 'penarikan'
-                      ? 'focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10'
-                      : 'focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10'
-                  }`}
-                />
+                <div className={`flex items-center w-full bg-slate-50 border rounded-xl px-4 py-3 transition-all duration-200 ${
+                  txType === 'topup'
+                    ? 'border-slate-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10'
+                    : txType === 'penarikan'
+                    ? 'border-slate-200 focus-within:border-rose-500 focus-within:ring-4 focus-within:ring-rose-500/10'
+                    : 'border-slate-200 focus-within:border-orange-500 focus-within:ring-4 focus-within:ring-orange-500/10'
+                }`}>
+                  <span className="text-sm font-bold text-slate-400 mr-2 select-none">Rp</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    required
+                    placeholder="0"
+                    value={amountDisplay}
+                    onChange={(e) => handleAmountChange(e.target.value)}
+                    className="flex-1 bg-transparent text-sm focus:outline-none font-bold text-slate-800 tabular-nums"
+                  />
+                  {amountDisplay && (
+                    <button
+                      type="button"
+                      onClick={() => { setAmount(''); setAmountDisplay(''); setSelectedQuickAmount(null); }}
+                      className="ml-2 text-slate-300 hover:text-slate-500 text-lg leading-none transition"
+                      tabIndex={-1}
+                    >×</button>
+                  )}
+                </div>
+                {amount && parseInt(amount, 10) > 0 && (
+                  <p className="text-[10px] text-slate-400 font-semibold pl-1">
+                    = <span className="font-bold text-slate-600">{formatRupiah(parseInt(amount, 10))}</span>
+                  </p>
+                )}
               </div>
 
               {/* QUICK NOMINAL SELECTORS */}
@@ -559,7 +598,7 @@ export default function Kasir() {
                   {/* Warning balance info */}
                   {activeCard && txType !== 'topup' && (
                     <div className="text-[10px] text-slate-400 font-semibold mb-2 leading-tight">
-                      Sisa saldo santri setelah transaksi: <span className="font-bold text-slate-700">{formatRupiah(activeCard.saldo - (parseFloat(amount) || 0))}</span>
+                      Sisa saldo santri setelah transaksi: <span className="font-bold text-slate-700">{formatRupiah(activeCard.saldo - (parseInt(amount, 10) || 0))}</span>
                     </div>
                   )}
                 </div>
@@ -567,9 +606,9 @@ export default function Kasir() {
 
               <button
                 type="submit"
-                disabled={processing || !activeCard || !amount || parseFloat(amount) <= 0}
+                disabled={processing || !activeCard || !amount || parseInt(amount, 10) <= 0}
                 className={`w-full py-4 rounded-2xl text-sm font-bold text-white shadow-lg transition-all duration-200 active:scale-95 flex items-center justify-center gap-2 ${
-                  (!amount || parseFloat(amount) <= 0 || !activeCard)
+                  (!amount || parseInt(amount, 10) <= 0 || !activeCard)
                     ? 'bg-slate-200 text-slate-400 shadow-none cursor-not-allowed'
                     : processing
                     ? 'bg-slate-400 text-white cursor-wait shadow-none'

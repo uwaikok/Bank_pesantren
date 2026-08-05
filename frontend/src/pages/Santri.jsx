@@ -52,6 +52,7 @@ export default function Santri({ onViewDetail }) {
     card_uid: '',
     tipe_kartu: 'RFID'
   });
+  const [saldoAwalDisplay, setSaldoAwalDisplay] = useState('0');
 
   const [assignCardData, setAssignCardData] = useState({
     card_uid: '',
@@ -59,6 +60,23 @@ export default function Santri({ onViewDetail }) {
   });
 
   const [message, setMessage] = useState(null); // { type: 'success'|'error', text: '' }
+
+  const formatInputRupiah = (rawDigits) => {
+    if (!rawDigits) return '';
+    const num = parseInt(rawDigits, 10);
+    if (isNaN(num)) return '';
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
+
+  const parseRawAmount = (str) => {
+    return str.replace(/[^0-9]/g, '');
+  };
+
+  const handleSaldoAwalChange = (val) => {
+    const raw = parseRawAmount(val);
+    setFormData({ ...formData, saldo_awal: raw });
+    setSaldoAwalDisplay(formatInputRupiah(raw));
+  };
 
   const fetchSantri = async () => {
     setLoading(true);
@@ -216,6 +234,7 @@ export default function Santri({ onViewDetail }) {
         showBanner('success', `Santri ${formData.nama} berhasil didaftarkan.`);
         setIsAddModalOpen(false);
         setFormData({ nis: '', nama: '', kelas: '', saldo_awal: '0', card_uid: '', tipe_kartu: 'RFID' });
+        setSaldoAwalDisplay('0');
         setShowManualAddUid(false);
         fetchSantri();
       } else {
@@ -554,13 +573,30 @@ export default function Santri({ onViewDetail }) {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500">Setoran Saldo Awal (Rp)</label>
-                <input
-                  type="number"
-                  min="0"
-                  value={formData.saldo_awal}
-                  onChange={(e) => setFormData({...formData, saldo_awal: e.target.value})}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-semibold"
-                />
+                <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 transition-all duration-200 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10">
+                  <span className="text-sm font-bold text-slate-400 mr-2 select-none">Rp</span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="0"
+                    value={saldoAwalDisplay}
+                    onChange={(e) => handleSaldoAwalChange(e.target.value)}
+                    className="flex-1 bg-transparent text-sm focus:outline-none font-bold text-slate-800 tabular-nums"
+                  />
+                  {saldoAwalDisplay && saldoAwalDisplay !== '0' && (
+                    <button
+                      type="button"
+                      onClick={() => { setFormData({...formData, saldo_awal: '0'}); setSaldoAwalDisplay('0'); }}
+                      className="ml-2 text-slate-300 hover:text-slate-500 text-lg leading-none transition"
+                      tabIndex={-1}
+                    >×</button>
+                  )}
+                </div>
+                {formData.saldo_awal && parseInt(formData.saldo_awal, 10) > 0 && (
+                  <p className="text-[10px] text-slate-400 font-semibold pl-1">
+                    = <span className="font-bold text-slate-600">{formatRupiah(parseInt(formData.saldo_awal, 10))}</span>
+                  </p>
+                )}
               </div>
 
               {/* CARD DETECTING BOX */}

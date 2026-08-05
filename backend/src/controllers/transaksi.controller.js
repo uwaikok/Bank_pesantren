@@ -215,8 +215,8 @@ exports.getTransactionHistory = async (req, res) => {
 // Get System Dashboard Stats
 exports.getDashboardStats = async (req, res) => {
   try {
-    // 1. Total balance currently in system (Outstanding liability)
-    const saldoRes = await db.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL`);
+    // 1. Total balance currently in system (Outstanding liability) - only active students
+    const saldoRes = await db.query(`SELECT SUM(saldo) as total_saldo, COUNT(*) as total_santri FROM santri WHERE deleted_at IS NULL AND status = 'aktif'`);
     
     // 2. Aggregates for transactions
     const transStats = await db.query(`

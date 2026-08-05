@@ -3,13 +3,38 @@ import { Settings, ShieldCheck, HelpCircle, Save } from 'lucide-react';
 
 export default function Pengaturan() {
   const [minSaldo, setMinSaldo] = useState('10000');
+  const [minSaldoDisplay, setMinSaldoDisplay] = useState('10.000');
   const [biayaAdmin, setBiayaAdmin] = useState('500');
+  const [biayaAdminDisplay, setBiayaAdminDisplay] = useState('500');
   const [pesantrenName, setPesantrenName] = useState('Pondok Pesantren Miftahul Huda As-Syadzili');
   const [sistemMode, setSistemMode] = useState('online');
 
+  const formatInputRupiah = (rawDigits) => {
+    if (!rawDigits) return '';
+    const num = parseInt(rawDigits, 10);
+    if (isNaN(num)) return '';
+    return new Intl.NumberFormat('id-ID').format(num);
+  };
+
+  const parseRawAmount = (str) => {
+    return str.replace(/[^0-9]/g, '');
+  };
+
+  const handleMinSaldoChange = (val) => {
+    const raw = parseRawAmount(val);
+    setMinSaldo(raw);
+    setMinSaldoDisplay(formatInputRupiah(raw));
+  };
+
+  const handleBiayaAdminChange = (val) => {
+    const raw = parseRawAmount(val);
+    setBiayaAdmin(raw);
+    setBiayaAdminDisplay(formatInputRupiah(raw));
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
-    alert('Pengaturan preferensi sistem berhasil disimpan!');
+    alert(`Pengaturan preferensi sistem berhasil disimpan!\nBatas Saldo Minimum: Rp ${formatInputRupiah(minSaldo)}\nBiaya Admin: Rp ${formatInputRupiah(biayaAdmin)}`);
   };
 
   return (
@@ -27,26 +52,34 @@ export default function Pengaturan() {
             {/* Batas Saldo Minimum */}
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Batas Saldo Minimum Santri (Rupiah)</label>
-              <input 
-                type="number" 
-                value={minSaldo}
-                onChange={(e) => setMinSaldo(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-semibold"
-                required
-              />
+              <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10">
+                <span className="text-sm font-bold text-slate-400 mr-2 select-none">Rp</span>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={minSaldoDisplay}
+                  onChange={(e) => handleMinSaldoChange(e.target.value)}
+                  className="flex-1 bg-transparent text-sm focus:outline-none font-bold text-slate-800 tabular-nums"
+                  required
+                />
+              </div>
               <span className="text-[10px] text-slate-400">Santri tidak bisa melakukan belanja jika sisa saldo menyentuh limit ini.</span>
             </div>
 
             {/* Biaya Admin Transaksi */}
             <div className="space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Biaya Admin per Tarik Tunai (Rupiah)</label>
-              <input 
-                type="number" 
-                value={biayaAdmin}
-                onChange={(e) => setBiayaAdmin(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 font-semibold"
-                required
-              />
+              <div className="flex items-center w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/10">
+                <span className="text-sm font-bold text-slate-400 mr-2 select-none">Rp</span>
+                <input 
+                  type="text" 
+                  inputMode="numeric"
+                  value={biayaAdminDisplay}
+                  onChange={(e) => handleBiayaAdminChange(e.target.value)}
+                  className="flex-1 bg-transparent text-sm focus:outline-none font-bold text-slate-800 tabular-nums"
+                  required
+                />
+              </div>
               <span className="text-[10px] text-slate-400">Biaya administrasi yang dikenakan otomatis saat melakukan transaksi tunai.</span>
             </div>
           </div>
