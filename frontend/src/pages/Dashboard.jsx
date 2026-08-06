@@ -122,11 +122,7 @@ export default function Dashboard({ setActivePage }) {
         <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 cursor-default">
           {/* Decorative wallet illustration */}
           <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1"/>
-              <path d="M23 12h-6a2 2 0 0 0 0 4h6v-4z"/>
-              <circle cx="17" cy="14" r="1" fill="white" opacity="0.8"/>
-            </svg>
+            <Wallet className="w-40 h-40 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -145,16 +141,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 text-white p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative group-of-people illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
-              {/* Three people silhouettes */}
-              <circle cx="9" cy="5" r="2.5"/>
-              <path d="M9 9c-3 0-5 1.5-5 4v2h10v-2c0-2.5-2-4-5-4z"/>
-              <circle cx="17" cy="6" r="2"/>
-              <path d="M17 10c-1.2 0-2.3.4-3.1 1 1.3.9 2.1 2.3 2.1 3.9v1H22v-1.5c0-2.2-1.8-4.4-5-4.4z"/>
-              <circle cx="3.5" cy="6.5" r="1.8"/>
-              <path d="M3.5 10.5C1.2 10.5 0 12 0 13.8V15h5v-1.1c0-1.5.8-2.9 2-3.8-.7-.4-1.5-.6-3.5-.6z"/>
-            </svg>
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <Users className="w-40 h-40 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -178,19 +166,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative RFID card illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <svg width="160" height="160" viewBox="0 0 32 32" fill="currentColor">
-              {/* Card body */}
-              <rect x="2" y="8" width="28" height="19" rx="3" ry="3"/>
-              {/* Chip */}
-              <rect x="6" y="13" width="7" height="5" rx="1" fill="rgba(255,255,255,0.45)"/>
-              {/* Horizontal stripe */}
-              <rect x="2" y="12" width="28" height="3" fill="rgba(255,255,255,0.15)"/>
-              {/* RFID signal arcs */}
-              <path d="M20 14 Q22 16 20 18" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-              <path d="M22.5 12 Q26 16 22.5 20" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-              <path d="M25 10.5 Q30 16 25 21.5" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
-            </svg>
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <CreditCard className="w-40 h-40 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -214,15 +191,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 text-white p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative shopping bag illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
-              {/* Bag body */}
-              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
-              {/* Bag top fold */}
-              <line x1="3" y1="6" x2="21" y2="6" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"/>
-              {/* Handle cutout */}
-              <path d="M16 10a4 4 0 01-8 0" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <ShoppingBag className="w-40 h-40 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
