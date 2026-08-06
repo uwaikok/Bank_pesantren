@@ -125,12 +125,12 @@ export default function Dashboard({ setActivePage }) {
             <Wallet className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
               <Wallet className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Total Kas</span>
+            <span className="text-[10px] bg-white text-amber-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Total Kas</span>
           </div>
-          <p className="text-xs font-bold text-white/75">Saldo Mengendap Santri</p>
+          <p className="text-xs font-bold text-white/90">Saldo Mengendap Santri</p>
           <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_outstanding_saldo)}</p>
         </div>
 
@@ -145,16 +145,16 @@ export default function Dashboard({ setActivePage }) {
             <Users className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
               <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Santri</span>
+            <span className="text-[10px] bg-white text-emerald-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Santri</span>
           </div>
-          <p className="text-xs font-bold text-white/75">Santri Terdaftar</p>
+          <p className="text-xs font-bold text-white/90">Santri Terdaftar</p>
           <p className="text-2xl font-black mt-1 text-white">
-            {stats?.total_santri} <span className="text-sm font-semibold text-white/70">Orang</span>
+            {stats?.total_santri} <span className="text-sm font-semibold text-white/80">Orang</span>
           </p>
-          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
             <span className="text-white font-extrabold">▲</span> +3 santri baru minggu ini
           </p>
         </div>
@@ -170,16 +170,16 @@ export default function Dashboard({ setActivePage }) {
             <CreditCard className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
               <CreditCard className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">RFID</span>
+            <span className="text-[10px] bg-white text-sky-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">RFID</span>
           </div>
-          <p className="text-xs font-bold text-white/75">Kartu Aktif</p>
+          <p className="text-xs font-bold text-white/90">Kartu Aktif</p>
           <p className="text-2xl font-black mt-1 text-white">
-            {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-white/70">Kartu</span>
+            {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-white/80">Kartu</span>
           </p>
-          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
             <span className="text-white font-extrabold">▲</span> +2 kartu aktif hari ini
           </p>
         </div>
@@ -195,14 +195,14 @@ export default function Dashboard({ setActivePage }) {
             <ShoppingBag className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
               <ShoppingBag className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Belanja</span>
+            <span className="text-[10px] bg-white text-orange-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Belanja</span>
           </div>
-          <p className="text-xs font-bold text-white/75">Total Belanja</p>
+          <p className="text-xs font-bold text-white/90">Total Belanja</p>
           <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_pembayaran)}</p>
-          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
             <span className="text-white/90 font-extrabold">▼</span> -4.2% dibanding bulan lalu
           </p>
         </div>
