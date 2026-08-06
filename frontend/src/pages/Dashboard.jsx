@@ -117,78 +117,128 @@ export default function Dashboard({ setActivePage }) {
 
       {/* Primary Analytics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Outstanding Balance */}
-        <div className="bg-gradient-to-br from-gold-500 to-gold-600 text-slate-950 p-6 rounded-2xl shadow-lg shadow-gold-500/10 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-          <div className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-10 text-slate-950 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-            <Wallet className="w-40 h-40" />
+
+        {/* ── Card 1: Saldo Mengendap Santri (Total Kas) ── */}
+        <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 cursor-default">
+          {/* Decorative wallet illustration */}
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 18v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1"/>
+              <path d="M23 12h-6a2 2 0 0 0 0 4h6v-4z"/>
+              <circle cx="17" cy="14" r="1" fill="white" opacity="0.8"/>
+            </svg>
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/30 p-2.5 rounded-xl backdrop-blur-sm">
-              <Wallet className="w-6 h-6 text-slate-950" />
+            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+              <Wallet className="w-6 h-6 text-white" />
             </div>
-            <span className="text-[10px] bg-white/40 text-slate-950 font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Total Kas</span>
+            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Total Kas</span>
           </div>
-          <p className="text-xs font-bold text-slate-950/75">Saldo Mengendap Santri</p>
-          <p className="text-2xl font-black mt-1">{formatRupiah(stats?.total_outstanding_saldo)}</p>
+          <p className="text-xs font-bold text-white/75">Saldo Mengendap Santri</p>
+          <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_outstanding_saldo)}</p>
         </div>
 
-        {/* Total Active Santri */}
-        <div 
+        {/* ── Card 2: Santri Terdaftar ── */}
+        <div
           onClick={() => setActivePage && setActivePage('santri')}
-          className="bg-white p-6 rounded-2xl border-l-4 border-l-emerald-500 border-y border-r border-slate-200/80 shadow-sm relative overflow-hidden group hover:-translate-y-1 hover:shadow-md hover:shadow-emerald-500/5 transition-all duration-300 cursor-pointer"
           title="Klik untuk membuka Manajemen Santri"
+          className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 text-white p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="bg-emerald-50 text-emerald-600 p-3 rounded-full shadow-inner flex items-center justify-center">
-              <Users className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] bg-emerald-50 text-emerald-700 font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-emerald-100">Santri</span>
+          {/* Decorative group-of-people illustration */}
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
+              {/* Three people silhouettes */}
+              <circle cx="9" cy="5" r="2.5"/>
+              <path d="M9 9c-3 0-5 1.5-5 4v2h10v-2c0-2.5-2-4-5-4z"/>
+              <circle cx="17" cy="6" r="2"/>
+              <path d="M17 10c-1.2 0-2.3.4-3.1 1 1.3.9 2.1 2.3 2.1 3.9v1H22v-1.5c0-2.2-1.8-4.4-5-4.4z"/>
+              <circle cx="3.5" cy="6.5" r="1.8"/>
+              <path d="M3.5 10.5C1.2 10.5 0 12 0 13.8V15h5v-1.1c0-1.5.8-2.9 2-3.8-.7-.4-1.5-.6-3.5-.6z"/>
+            </svg>
           </div>
-          <p className="text-xs font-bold text-slate-400">Santri Terdaftar</p>
-          <p className="text-2xl font-black mt-1 text-slate-800">{stats?.total_santri} <span className="text-sm font-semibold text-slate-500">Orang</span></p>
-          <p className="text-[10px] text-emerald-600 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-emerald-500 font-extrabold">▲</span> +3 santri baru minggu ini
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Santri</span>
+          </div>
+          <p className="text-xs font-bold text-white/75">Santri Terdaftar</p>
+          <p className="text-2xl font-black mt-1 text-white">
+            {stats?.total_santri} <span className="text-sm font-semibold text-white/70">Orang</span>
+          </p>
+          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-white font-extrabold">▲</span> +3 santri baru minggu ini
           </p>
         </div>
 
-        {/* Active Cards */}
-        <div 
+        {/* ── Card 3: Kartu Aktif ── */}
+        <div
           onClick={handleOpenCardsModal}
-          className="bg-white p-6 rounded-2xl border-l-4 border-l-sky-500 border-y border-r border-slate-200/80 shadow-sm relative overflow-hidden group hover:-translate-y-1 hover:shadow-md hover:shadow-sky-500/5 transition-all duration-300 cursor-pointer"
           title="Klik untuk melihat detail nomor/nama kartu aktif"
+          className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="bg-sky-50 text-sky-600 p-3 rounded-full shadow-inner flex items-center justify-center">
-              <CreditCard className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] bg-sky-50 text-sky-700 font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-sky-100">RFID</span>
+          {/* Decorative RFID card illustration */}
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <svg width="160" height="160" viewBox="0 0 32 32" fill="currentColor">
+              {/* Card body */}
+              <rect x="2" y="8" width="28" height="19" rx="3" ry="3"/>
+              {/* Chip */}
+              <rect x="6" y="13" width="7" height="5" rx="1" fill="rgba(255,255,255,0.45)"/>
+              {/* Horizontal stripe */}
+              <rect x="2" y="12" width="28" height="3" fill="rgba(255,255,255,0.15)"/>
+              {/* RFID signal arcs */}
+              <path d="M20 14 Q22 16 20 18" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+              <path d="M22.5 12 Q26 16 22.5 20" stroke="rgba(255,255,255,0.5)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+              <path d="M25 10.5 Q30 16 25 21.5" stroke="rgba(255,255,255,0.35)" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+            </svg>
           </div>
-          <p className="text-xs font-bold text-slate-400">Kartu Aktif</p>
-          <p className="text-2xl font-black mt-1 text-slate-800">{stats?.total_kartu_aktif} <span className="text-sm font-semibold text-slate-500">Kartu</span></p>
-          <p className="text-[10px] text-sky-600 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-sky-500 font-extrabold">▲</span> +2 kartu aktif hari ini
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+              <CreditCard className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">RFID</span>
+          </div>
+          <p className="text-xs font-bold text-white/75">Kartu Aktif</p>
+          <p className="text-2xl font-black mt-1 text-white">
+            {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-white/70">Kartu</span>
+          </p>
+          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-white font-extrabold">▲</span> +2 kartu aktif hari ini
           </p>
         </div>
 
-        {/* Flow Stats Summary */}
-        <div 
+        {/* ── Card 4: Total Belanja ── */}
+        <div
           onClick={() => setActivePage && setActivePage('riwayat', { filter: 'pembayaran' })}
-          className="bg-white p-6 rounded-2xl border-l-4 border-l-orange-500 border-y border-r border-slate-200/80 shadow-sm relative overflow-hidden group hover:-translate-y-1 hover:shadow-md hover:shadow-orange-500/5 transition-all duration-300 cursor-pointer"
           title="Klik untuk membuka Riwayat Log Belanja (difilter ke Pembayaran)"
+          className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 text-white p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
         >
-          <div className="flex items-center justify-between mb-3">
-            <div className="bg-orange-50 text-orange-600 p-3 rounded-full shadow-inner flex items-center justify-center">
-              <ShoppingBag className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] bg-orange-50 text-orange-700 font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-orange-100">Belanja</span>
+          {/* Decorative shopping bag illustration */}
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-3 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
+            <svg width="160" height="160" viewBox="0 0 24 24" fill="currentColor">
+              {/* Bag body */}
+              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+              {/* Bag top fold */}
+              <line x1="3" y1="6" x2="21" y2="6" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"/>
+              {/* Handle cutout */}
+              <path d="M16 10a4 4 0 01-8 0" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
           </div>
-          <p className="text-xs font-bold text-slate-400">Total Belanja</p>
-          <p className="text-2xl font-black mt-1 text-slate-800">{formatRupiah(stats?.total_pembayaran)}</p>
-          <p className="text-[10px] text-rose-500 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-rose-500 font-extrabold">▼</span> -4.2% dibanding bulan lalu
+          <div className="flex items-center justify-between mb-4">
+            <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
+              <ShoppingBag className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Belanja</span>
+          </div>
+          <p className="text-xs font-bold text-white/75">Total Belanja</p>
+          <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_pembayaran)}</p>
+          <p className="text-[10px] text-white/80 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-white/90 font-extrabold">▼</span> -4.2% dibanding bulan lalu
           </p>
         </div>
+
       </div>
+
 
       {/* Mid Level Details: Flows Breakdown + Recent Transactions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
