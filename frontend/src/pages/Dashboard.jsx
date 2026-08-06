@@ -119,43 +119,43 @@ export default function Dashboard({ setActivePage }) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         {/* ── Card 1: Saldo Mengendap Santri (Total Kas) ── */}
-        <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 cursor-default">
+        <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 p-6 rounded-2xl shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 cursor-default">
           {/* Decorative wallet illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
-            <Wallet className="w-28 h-28 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.18] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.25] transition-all duration-500">
+            <Wallet className="w-28 h-28 text-amber-900" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
-              <Wallet className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="bg-white/70 p-2.5 rounded-xl ring-1 ring-white/80 shadow-sm">
+              <Wallet className="w-6 h-6 text-amber-700" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white text-amber-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Total Kas</span>
           </div>
-          <p className="text-xs font-bold text-white/90">Saldo Mengendap Santri</p>
-          <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_outstanding_saldo)}</p>
+          <p className="text-xs font-bold text-slate-800">Saldo Mengendap Santri</p>
+          <p className="text-2xl font-black mt-1 text-slate-900">{formatRupiah(stats?.total_outstanding_saldo)}</p>
         </div>
 
         {/* ── Card 2: Santri Terdaftar ── */}
         <div
           onClick={() => setActivePage && setActivePage('santri')}
           title="Klik untuk membuka Manajemen Santri"
-          className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 text-white p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
+          className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-600 p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative group-of-people illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
-            <Users className="w-28 h-28 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.18] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.25] transition-all duration-500">
+            <Users className="w-28 h-28 text-emerald-900" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
-              <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="bg-white/70 p-2.5 rounded-xl ring-1 ring-white/80 shadow-sm">
+              <Users className="w-6 h-6 text-emerald-700" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white text-emerald-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Santri</span>
           </div>
-          <p className="text-xs font-bold text-white/90">Santri Terdaftar</p>
-          <p className="text-2xl font-black mt-1 text-white">
-            {stats?.total_santri} <span className="text-sm font-semibold text-white/80">Orang</span>
+          <p className="text-xs font-bold text-slate-800">Santri Terdaftar</p>
+          <p className="text-2xl font-black mt-1 text-slate-900">
+            {stats?.total_santri} <span className="text-sm font-semibold text-slate-700">Orang</span>
           </p>
-          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-white font-extrabold">▲</span> +3 santri baru minggu ini
+          <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-emerald-800 font-extrabold">▲</span> +3 santri baru minggu ini
           </p>
         </div>
 
@@ -163,24 +163,24 @@ export default function Dashboard({ setActivePage }) {
         <div
           onClick={handleOpenCardsModal}
           title="Klik untuk melihat detail nomor/nama kartu aktif"
-          className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
+          className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative RFID card illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
-            <CreditCard className="w-28 h-28 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.18] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.25] transition-all duration-500">
+            <CreditCard className="w-28 h-28 text-blue-900" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
-              <CreditCard className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="bg-white/70 p-2.5 rounded-xl ring-1 ring-white/80 shadow-sm">
+              <CreditCard className="w-6 h-6 text-sky-700" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white text-sky-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">RFID</span>
           </div>
-          <p className="text-xs font-bold text-white/90">Kartu Aktif</p>
-          <p className="text-2xl font-black mt-1 text-white">
-            {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-white/80">Kartu</span>
+          <p className="text-xs font-bold text-slate-800">Kartu Aktif</p>
+          <p className="text-2xl font-black mt-1 text-slate-900">
+            {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-slate-700">Kartu</span>
           </p>
-          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-white font-extrabold">▲</span> +2 kartu aktif hari ini
+          <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-sky-800 font-extrabold">▲</span> +2 kartu aktif hari ini
           </p>
         </div>
 
@@ -188,22 +188,22 @@ export default function Dashboard({ setActivePage }) {
         <div
           onClick={() => setActivePage && setActivePage('riwayat', { filter: 'pembayaran' })}
           title="Klik untuk membuka Riwayat Log Belanja (difilter ke Pembayaran)"
-          className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 text-white p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
+          className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative shopping bag illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
-            <ShoppingBag className="w-28 h-28 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.18] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.25] transition-all duration-500">
+            <ShoppingBag className="w-28 h-28 text-red-900" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
-            <div className="bg-white/30 p-2.5 rounded-xl ring-1 ring-white/50 shadow-inner">
-              <ShoppingBag className="w-6 h-6 text-white" strokeWidth={2.5} />
+            <div className="bg-white/70 p-2.5 rounded-xl ring-1 ring-white/80 shadow-sm">
+              <ShoppingBag className="w-6 h-6 text-orange-700" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white text-orange-700 font-extrabold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">Belanja</span>
           </div>
-          <p className="text-xs font-bold text-white/90">Total Belanja</p>
-          <p className="text-2xl font-black mt-1 text-white">{formatRupiah(stats?.total_pembayaran)}</p>
-          <p className="text-[10px] text-white/90 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-white/90 font-extrabold">▼</span> -4.2% dibanding bulan lalu
+          <p className="text-xs font-bold text-slate-800">Total Belanja</p>
+          <p className="text-2xl font-black mt-1 text-slate-900">{formatRupiah(stats?.total_pembayaran)}</p>
+          <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
+            <span className="text-red-900 font-extrabold">▼</span> -4.2% dibanding bulan lalu
           </p>
         </div>
 
