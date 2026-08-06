@@ -126,7 +126,7 @@ export default function Dashboard({ setActivePage }) {
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
-              <Wallet className="w-6 h-6 text-white" />
+              <Wallet className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Total Kas</span>
           </div>
@@ -146,7 +146,7 @@ export default function Dashboard({ setActivePage }) {
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
-              <Users className="w-6 h-6 text-white" />
+              <Users className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Santri</span>
           </div>
@@ -171,7 +171,7 @@ export default function Dashboard({ setActivePage }) {
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
-              <CreditCard className="w-6 h-6 text-white" />
+              <CreditCard className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">RFID</span>
           </div>
@@ -196,7 +196,7 @@ export default function Dashboard({ setActivePage }) {
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
-              <ShoppingBag className="w-6 h-6 text-white" />
+              <ShoppingBag className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <span className="text-[10px] bg-white/20 text-white font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/30 backdrop-blur-sm">Belanja</span>
           </div>
