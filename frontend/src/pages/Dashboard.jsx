@@ -121,8 +121,8 @@ export default function Dashboard({ setActivePage }) {
         {/* ── Card 1: Saldo Mengendap Santri (Total Kas) ── */}
         <div className="bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 text-white p-6 rounded-2xl shadow-lg shadow-amber-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-amber-500/30 transition-all duration-300 cursor-default">
           {/* Decorative wallet illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <Wallet className="w-40 h-40 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
+            <Wallet className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -141,8 +141,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 text-white p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative group-of-people illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <Users className="w-40 h-40 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+            <Users className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -166,8 +166,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative RFID card illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <CreditCard className="w-40 h-40 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+            <CreditCard className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
@@ -191,8 +191,8 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 text-white p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative shopping bag illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-4 translate-y-4 opacity-[0.13] pointer-events-none group-hover:scale-110 group-hover:opacity-[0.18] transition-all duration-500">
-            <ShoppingBag className="w-40 h-40 text-white" strokeWidth={1.5} />
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+            <ShoppingBag className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
             <div className="bg-white/25 p-2.5 rounded-xl backdrop-blur-sm shadow-inner">
