@@ -222,7 +222,7 @@ export default function Profil() {
 
       {/* Tab Menu */}
       <div className="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
-        <div className="flex border-b border-slate-100">
+        <div className="flex border-b border-slate-100 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
@@ -367,7 +367,7 @@ export default function Profil() {
                 <div className="text-center py-12 text-slate-400 text-xs font-semibold">Memuat daftar pengurus...</div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse text-xs">
+                  <table className="w-full text-left border-collapse text-xs min-w-[520px]">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
                         <th className="py-3 px-4">Nama Lengkap</th>

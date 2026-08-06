@@ -456,7 +456,7 @@ export default function Kasir() {
               <button
                 type="button"
                 onClick={() => handleTxTypeChange('pembayaran')}
-                className={`py-2.5 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
+                className={`py-2.5 rounded-lg text-[10px] sm:text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
                   txType === 'pembayaran'
                     ? 'bg-white text-orange-600 shadow-sm border border-orange-200/60'
                     : 'text-slate-500 hover:text-slate-700'
@@ -469,7 +469,7 @@ export default function Kasir() {
               <button
                 type="button"
                 onClick={() => handleTxTypeChange('topup')}
-                className={`py-2.5 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
+                className={`py-2.5 rounded-lg text-[10px] sm:text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
                   txType === 'topup'
                     ? 'bg-white text-emerald-700 shadow-sm border border-emerald-200/60'
                     : 'text-slate-500 hover:text-slate-700'
@@ -482,7 +482,7 @@ export default function Kasir() {
               <button
                 type="button"
                 onClick={() => handleTxTypeChange('penarikan')}
-                className={`py-2.5 rounded-lg text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
+                className={`py-2.5 rounded-lg text-[10px] sm:text-xs font-bold flex flex-col items-center justify-center gap-1 transition-all duration-200 ${
                   txType === 'penarikan'
                     ? 'bg-white text-rose-700 shadow-sm border border-rose-200/60'
                     : 'text-slate-500 hover:text-slate-700'

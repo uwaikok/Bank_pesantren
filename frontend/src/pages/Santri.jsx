@@ -385,11 +385,11 @@ export default function Santri({ onViewDetail }) {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 min-w-[200px] bg-transparent text-sm focus:outline-none text-slate-700 font-medium"
         />
-        <div className="h-4 w-px bg-slate-200"></div>
+        <div className="hidden sm:block h-4 w-px bg-slate-200"></div>
         <select
           value={filterKelas}
           onChange={(e) => setFilterKelas(e.target.value)}
-          className="bg-transparent border-0 text-xs font-bold text-slate-600 focus:outline-none cursor-pointer"
+          className="bg-slate-50 border border-slate-200 sm:border-0 sm:bg-transparent rounded-xl px-3 py-2 sm:p-0 text-xs font-bold text-slate-650 focus:outline-none cursor-pointer w-full sm:w-auto"
         >
           <option value="">Semua Kelas</option>
           <option value="Imdad Putra">Imdad Putra</option>
@@ -401,7 +401,7 @@ export default function Santri({ onViewDetail }) {
           <option value="Ibtida 3">Ibtida 3</option>
           <option value="Tsanawi">Tsanawi</option>
         </select>
-        {loading && <RefreshCw className="w-4 h-4 text-emerald-600 animate-spin" />}
+        {loading && <RefreshCw className="w-4 h-4 text-emerald-600 animate-spin flex-shrink-0" />}
       </div>
 
       {/* Grid of Santri Cards */}
@@ -481,14 +481,14 @@ export default function Santri({ onViewDetail }) {
                 </button>
                 <button
                   onClick={() => handleEditClick(santri)}
-                  className="flex items-center justify-center gap-1 border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 p-2 rounded-xl text-xs font-bold transition"
+                  className="flex items-center justify-center gap-1 border border-slate-200 text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 p-2.5 rounded-xl text-xs font-bold transition"
                   title="Edit profil / kartu santri"
                 >
                   <Edit2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDeleteSantri(santri.id, santri.nama)}
-                  className="border border-slate-200 text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 p-2 rounded-xl transition"
+                  className="border border-slate-200 text-slate-400 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 p-2.5 rounded-xl transition"
                   title="Hapus Santri"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -516,7 +516,7 @@ export default function Santri({ onViewDetail }) {
 
             {/* Modal Form */}
             <form onSubmit={handleCreateSantri} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500">Nomor Induk Santri (NIS)</label>
                   <input
@@ -711,7 +711,7 @@ export default function Santri({ onViewDetail }) {
 
             {/* Modal Form */}
             <form onSubmit={handleUpdateSantri} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-500">Nomor Induk Santri (NIS)</label>
                   <input

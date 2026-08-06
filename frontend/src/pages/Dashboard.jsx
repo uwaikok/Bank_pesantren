@@ -141,7 +141,7 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-emerald-400 via-emerald-500 to-emerald-700 text-white p-6 rounded-2xl shadow-lg shadow-emerald-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative group-of-people illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
             <Users className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
@@ -166,7 +166,7 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-sky-400 via-sky-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg shadow-sky-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-sky-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative RFID card illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
             <CreditCard className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">
@@ -191,7 +191,7 @@ export default function Dashboard({ setActivePage }) {
           className="bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 text-white p-6 rounded-2xl shadow-lg shadow-orange-500/20 relative overflow-hidden group hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/30 transition-all duration-300 cursor-pointer"
         >
           {/* Decorative shopping bag illustration */}
-          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.05] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.09] transition-all duration-500">
+          <div aria-hidden="true" className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-[0.08] pointer-events-none group-hover:scale-105 group-hover:opacity-[0.12] transition-all duration-500">
             <ShoppingBag className="w-28 h-28 text-white" strokeWidth={1.5} />
           </div>
           <div className="flex items-center justify-between mb-4">

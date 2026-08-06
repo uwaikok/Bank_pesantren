@@ -207,43 +207,44 @@ export default function Login({ onLoginSuccess }) {
         { top: '80%', right: '6%',  size: 9,  cls: 'star-twinkle',   color: '#f59e0b' },
         { top: '15%', right: '20%', size: 6,  cls: 'star-twinkle-2', color: '#10b981' },
       ].map((s, i) => (
-        <SparkleIcon key={i} className={s.cls} color={s.color} size={s.size}
+        <SparkleIcon key={i} className={`${s.cls} hidden sm:block`} color={s.color} size={s.size}
           style={{ position: 'absolute', top: s.top, left: s.left, right: s.right, pointerEvents: 'none', zIndex: 2 }} />
       ))}
 
       {/* ── Top Header Controls ── */}
-      <div className="absolute top-6 left-6 right-6 flex justify-between items-center pointer-events-auto fade-slide-up-1" style={{ zIndex: 20 }}>
-        <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-slate-200/60 text-[10px] font-bold text-slate-600 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-          <span>PP Miftahul Huda As-Syadzili</span>
+      <div className="absolute top-4 sm:top-6 left-4 sm:left-6 right-4 sm:right-6 flex justify-between items-center pointer-events-auto fade-slide-up-1" style={{ zIndex: 20 }}>
+        <div className="flex items-center gap-2 bg-white/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-200/60 text-[9px] sm:text-[10px] font-bold text-slate-600 shadow-sm truncate max-w-[65%] sm:max-w-none">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" aria-hidden="true" />
+          <span className="hidden sm:inline">PP Miftahul Huda As-Syadzili</span>
+          <span className="inline sm:hidden">PP Miftahul Huda</span>
         </div>
-        <div className="flex items-center gap-1 bg-white/70 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-slate-200/60 text-slate-600 shadow-sm">
+        <div className="flex items-center gap-1 bg-white/70 backdrop-blur-md px-2 py-1.5 rounded-full border border-slate-200/60 text-slate-600 shadow-sm flex-shrink-0">
           <Globe className="w-3.5 h-3.5" aria-hidden="true" />
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="bg-transparent text-[10px] font-bold outline-none cursor-pointer text-slate-700"
+            className="bg-transparent text-[9px] sm:text-[10px] font-bold outline-none cursor-pointer text-slate-700"
           >
-            <option value="ID">Bahasa Indonesia</option>
+            <option value="ID">Indo</option>
             <option value="EN">English</option>
           </select>
         </div>
       </div>
 
       {/* ── Main Login Card ── */}
-      <div className="w-full max-w-[420px] relative fade-slide-up-2" style={{ zIndex: 10 }}>
+      <div className="w-full max-w-[420px] relative fade-slide-up-2 p-1 sm:p-0" style={{ zIndex: 10 }}>
         {/* Glowing ring behind card */}
-        <div aria-hidden="true" style={{ position: 'absolute', inset: '-6px', borderRadius: '1.75rem', background: 'linear-gradient(135deg, rgba(5,150,105,0.15), rgba(245,158,11,0.10), rgba(5,150,105,0.08))', filter: 'blur(8px)', zIndex: -1 }} />
+        <div aria-hidden="true" style={{ position: 'absolute', inset: '-4px', borderRadius: '1.75rem', background: 'linear-gradient(135deg, rgba(5,150,105,0.15), rgba(245,158,11,0.10), rgba(5,150,105,0.08))', filter: 'blur(8px)', zIndex: -1 }} />
 
-        <div className="bg-white border border-slate-200/80 p-8 md:p-10 rounded-[1.5rem] shadow-xl shadow-slate-100/60">
+        <div className="bg-white border border-slate-200/80 p-6 sm:p-8 md:p-10 rounded-[1.5rem] shadow-xl shadow-slate-100/60">
 
           {/* Header: Logo and App Title */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-slate-50 border border-slate-100 p-2 mb-4 shadow-sm">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-50 border border-slate-100 p-2 mb-3 sm:mb-4 shadow-sm">
               <img src={logo} alt="Logo E-Saku Santri" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight">E-Saku Santri</h1>
-            <p className="text-[10px] text-emerald-600 font-extrabold tracking-widest uppercase mt-1">Bank Pesantren</p>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-800 tracking-tight">E-Saku Santri</h1>
+            <p className="text-[9px] sm:text-[10px] text-emerald-600 font-extrabold tracking-widest uppercase mt-1">Bank Pesantren</p>
           </div>
 
           {/* Error Alert */}
@@ -255,10 +256,10 @@ export default function Login({ onLoginSuccess }) {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
             {/* Username */}
             <div className="space-y-1.5">
-              <label htmlFor="login-username" className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Username</label>
+              <label htmlFor="login-username" className="text-[9px] sm:text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Username</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-slate-500" aria-hidden="true">
                   <User className="w-4 h-4" />
@@ -272,7 +273,7 @@ export default function Login({ onLoginSuccess }) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Masukkan username"
-                  className="w-full bg-slate-50/50 border border-slate-200 focus:border-emerald-600 text-slate-800 placeholder-slate-550 rounded-xl pl-11 pr-4 py-3 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition duration-150"
+                  className="w-full bg-slate-50/50 border border-slate-200 focus:border-emerald-600 text-slate-800 placeholder-slate-550 rounded-xl pl-11 pr-4 py-2.5 sm:py-3 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition duration-150"
                   style={{ color: '#1e293b' }}
                 />
               </div>
@@ -281,11 +282,11 @@ export default function Login({ onLoginSuccess }) {
             {/* Password */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label htmlFor="login-password" className="text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Password</label>
+                <label htmlFor="login-password" className="text-[9px] sm:text-[10px] font-bold text-slate-600 uppercase tracking-wider block">Password</label>
                 <a
                   href="#"
                   onClick={(e) => { e.preventDefault(); alert("Silakan hubungi Administrator utama untuk melakukan reset password."); }}
-                  className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 transition"
+                  className="text-[9px] sm:text-[10px] font-bold text-emerald-600 hover:text-emerald-700 transition"
                 >
                   Lupa sandi?
                 </a>
@@ -302,7 +303,7 @@ export default function Login({ onLoginSuccess }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Masukkan password"
-                  className="w-full bg-slate-50/50 border border-slate-200 focus:border-emerald-600 text-slate-800 placeholder-slate-550 rounded-xl pl-11 pr-12 py-3 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition duration-150"
+                  className="w-full bg-slate-50/50 border border-slate-200 focus:border-emerald-600 text-slate-800 placeholder-slate-550 rounded-xl pl-11 pr-12 py-2.5 sm:py-3 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 transition duration-150"
                   style={{ color: '#1e293b' }}
                 />
                 <button
@@ -317,10 +318,10 @@ export default function Login({ onLoginSuccess }) {
             </div>
 
             {/* Remember Me Checkbox */}
-            <div className="flex items-center text-xs font-bold text-slate-600 pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input id="login-remember" type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500/20 w-4 h-4" />
-                <span>Ingat saya di perangkat ini</span>
+            <div className="flex items-center text-xs font-bold text-slate-600 py-1">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none w-full py-1.5">
+                <input id="login-remember" type="checkbox" className="rounded border-slate-300 text-emerald-600 focus:ring-emerald-500/20 w-4.5 h-4.5" />
+                <span>Remember me / Ingat saya</span>
               </label>
             </div>
 
@@ -329,7 +330,7 @@ export default function Login({ onLoginSuccess }) {
               id="login-submit-btn"
               type="submit"
               disabled={loading}
-              className={`w-full py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 mt-6 flex items-center justify-center gap-2 shadow-sm ${
+              className={`w-full py-3 sm:py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-200 mt-4 flex items-center justify-center gap-2 shadow-sm ${
                 loading
                   ? 'bg-emerald-800/40 text-emerald-250 cursor-not-allowed'
                   : 'text-white hover:shadow-md hover:scale-[1.015] active:scale-[0.99]'
@@ -351,7 +352,7 @@ export default function Login({ onLoginSuccess }) {
           </form>
 
           {/* Small Footer Text */}
-          <div className="text-center text-[9px] text-slate-400/80 font-bold tracking-wider uppercase mt-8 pt-6 border-t border-slate-100">
+          <div className="text-center text-[9px] text-slate-400/80 font-bold tracking-wider uppercase mt-6 sm:mt-8 pt-6 border-t border-slate-100">
             <span>PONDOK PESANTREN MIFTAHUL HUDA AS-SYADZILI · © 2026</span>
           </div>
 

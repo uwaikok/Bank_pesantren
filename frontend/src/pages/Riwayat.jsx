@@ -87,7 +87,7 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
 
       {/* Filter and Search controls */}
       <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm space-y-4">
-        <div className="flex flex-col xl:flex-row gap-3 items-center">
+        <div className="flex flex-col md:flex-row gap-3 items-center">
           {/* Search bar */}
           <div className="flex-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 flex items-center gap-2 focus-within:border-emerald-400 focus-within:bg-white transition-colors">
             <Search className="w-4 h-4 text-slate-400" />
@@ -237,8 +237,54 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
         </div>
       </div>
 
-      {/* Main logs Table */}
-      <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
+      {/* Main logs — Mobile Card View (< md) */}
+      <div className="md:hidden space-y-3">
+        {history.length === 0 ? (
+          <div className="bg-white border border-slate-200/80 rounded-2xl p-10 text-center text-slate-400 text-sm font-semibold shadow-sm">
+            {loading ? 'Memuat riwayat...' : 'Tidak ada riwayat transaksi.'}
+          </div>
+        ) : (
+          history.map((tx) => {
+            const isTopup = tx.tipe_transaksi === 'topup';
+            const isPembayaran = tx.tipe_transaksi === 'pembayaran';
+            const borderColor = isTopup ? 'border-l-emerald-500' : isPembayaran ? 'border-l-orange-500' : 'border-l-rose-500';
+            return (
+              <div key={tx.id} className={`bg-white border border-slate-200/80 rounded-xl shadow-sm border-l-4 ${borderColor} p-4`}>
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-sm text-slate-800 truncate">{tx.santri_nama}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase font-mono mt-0.5">{tx.santri_nis} · {tx.santri_kelas}</p>
+                  </div>
+                  <span className={`flex-shrink-0 inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider border ${
+                    isTopup ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    : isPembayaran ? 'bg-orange-50 text-orange-700 border-orange-100'
+                    : 'bg-rose-50 text-rose-700 border-rose-100'
+                  }`}>
+                    {isTopup ? <ArrowUpRight className="w-3 h-3" /> : isPembayaran ? <ShoppingBag className="w-3 h-3" /> : <ArrowDownLeft className="w-3 h-3" />}
+                    {isTopup ? 'Setoran' : isPembayaran ? 'Belanja' : 'Tarik Tunai'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-100">
+                  <div>
+                    <p className={`text-base font-black ${isTopup ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isTopup ? '+' : '-'}{formatRupiah(tx.jumlah)}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Saldo: {formatRupiah(tx.saldo_sesudah)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] text-slate-500 font-semibold">{formatDateWIB(tx.created_at)}</p>
+                    <p className="text-[10px] text-slate-400 font-medium">{formatTimeWIB(tx.created_at)}</p>
+                    {tx.keterangan && <p className="text-[10px] text-slate-400 italic mt-0.5 max-w-[140px] truncate text-right" title={tx.keterangan}>{tx.keterangan}</p>}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Main logs — Desktop Table View (md+) */}
+      <div className="hidden md:block bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto w-full">
           <table className="w-full text-left border-collapse min-w-[950px]">
             <thead>
@@ -270,7 +316,6 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
 
                   return (
                     <tr key={tx.id} className={`hover:bg-slate-50/80 transition duration-150 border-b border-slate-100 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/30'}`}>
-                      {/* Timestamp (with left vertical accent border) */}
                       <td className={`py-3.5 px-5 whitespace-nowrap text-slate-400 ${borderLeftClass}`}>
                         <div className="flex items-center gap-1.5">
                           <Calendar className="w-3 h-3" />
@@ -279,16 +324,12 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
                           <span>{formatTimeWIB(tx.created_at)}</span>
                         </div>
                       </td>
-
-                      {/* Student Identity */}
                       <td className="py-3.5 px-5">
                         <div>
                           <p className="font-extrabold text-slate-800">{tx.santri_nama}</p>
                           <p className="text-[10px] font-bold text-slate-400 uppercase font-mono mt-0.5">{tx.santri_nis} · {tx.santri_kelas}</p>
                         </div>
                       </td>
-
-                      {/* Transaction Type Tag */}
                       <td className="py-3.5 px-5 text-center">
                         <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider ${
                           isTopup 
@@ -297,35 +338,19 @@ export default function Riwayat({ initialFilter = '', onFilterApplied }) {
                             ? 'bg-orange-50 text-orange-700 border border-orange-100' 
                             : 'bg-rose-50 text-rose-700 border border-rose-100'
                         }`}>
-                          {isTopup ? (
-                            <ArrowUpRight className="w-3 h-3" />
-                          ) : isPembayaran ? (
-                            <ShoppingBag className="w-3 h-3" />
-                          ) : (
-                            <ArrowDownLeft className="w-3 h-3" />
-                          )}
+                          {isTopup ? <ArrowUpRight className="w-3 h-3" /> : isPembayaran ? <ShoppingBag className="w-3 h-3" /> : <ArrowDownLeft className="w-3 h-3" />}
                           <span>{isTopup ? 'Setoran' : isPembayaran ? 'Belanja' : 'Tarik Tunai'}</span>
                         </span>
                       </td>
-
-                      {/* Transaction Amount (+ / - colors) */}
-                      <td className={`py-3.5 px-5 text-right font-extrabold ${
-                        isTopup ? 'text-emerald-600' : 'text-rose-600'
-                      }`}>
+                      <td className={`py-3.5 px-5 text-right font-extrabold ${isTopup ? 'text-emerald-600' : 'text-rose-600'}`}>
                         {isTopup ? '+' : '-'}{formatRupiah(tx.jumlah)}
                       </td>
-
-                      {/* Balance After */}
                       <td className="py-3.5 px-5 text-right text-slate-600 font-bold">
                         {formatRupiah(tx.saldo_sesudah)}
                       </td>
-
-                      {/* Notes */}
                       <td className="py-3.5 px-5 text-slate-500 font-medium max-w-[200px] truncate" title={tx.keterangan}>
                         {tx.keterangan}
                       </td>
-
-                      {/* Cashier Operator */}
                       <td className="py-3.5 px-5 text-slate-400 font-semibold whitespace-nowrap">
                         {tx.operator}
                       </td>
