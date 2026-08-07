@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 
 const CardReaderContext = createContext(null);
 
@@ -14,27 +14,42 @@ export const CardReaderProvider = ({ children }) => {
   const [lastCard, setLastCard] = useState(null);
   const [wsStatus, setWsStatus] = useState('disconnected');
   const [alertMessage, setAlertMessage] = useState(null);
-  
+  // readerActivity: tracks when last card was tapped (for honest status indicator)
+  const [readerActivity, setReaderActivity] = useState(null); // { uid, timestamp }
+
   // Buffers for HID Keyboard Emulation
   const bufferRef = useRef([]);
   const lastKeyTimeRef = useRef(0);
   const scanCallbacksRef = useRef(new Set());
 
-  // Function to register direct components listeners (e.g. Kasir or Registration Form)
-  const registerListener = (callback) => {
+  // Debounce guard: prevent double-scan within 1500ms
+  const lastScanTimeRef = useRef(0);
+  const lastScanUidRef = useRef('');
+
+  // Function to register direct component listeners (e.g. Kasir or Registration Form)
+  const registerListener = useCallback((callback) => {
     scanCallbacksRef.current.add(callback);
     return () => {
       scanCallbacksRef.current.delete(callback);
     };
-  };
+  }, []);
 
   // Process a card UID scan from any source
-  const handleCardScan = (cardUid, tipeKartu = 'RFID') => {
+  const handleCardScan = useCallback((cardUid, tipeKartu = 'RFID') => {
     const cleanedUid = cardUid.trim();
     if (!cleanedUid) return;
 
+    // ── Debounce: Ignore duplicate scan of same card within 1500ms ──
+    const now = Date.now();
+    if (cleanedUid === lastScanUidRef.current && now - lastScanTimeRef.current < 1500) {
+      console.warn(`⏱️ Double-scan blocked: ${cleanedUid} (${now - lastScanTimeRef.current}ms ago)`);
+      return;
+    }
+    lastScanTimeRef.current = now;
+    lastScanUidRef.current = cleanedUid;
+
     console.log(`🎴 Card Scanned: ${cleanedUid} (${tipeKartu})`);
-    
+
     const cardData = {
       uid: cleanedUid,
       tipe: tipeKartu,
@@ -42,7 +57,8 @@ export const CardReaderProvider = ({ children }) => {
     };
 
     setLastCard(cardData);
-    
+    setReaderActivity({ uid: cleanedUid, at: now });
+
     // Trigger temporary alert banner
     setAlertMessage(`Kartu terdeteksi: ${cleanedUid} (${tipeKartu})`);
     setTimeout(() => setAlertMessage(null), 4000);
@@ -55,45 +71,70 @@ export const CardReaderProvider = ({ children }) => {
         console.error('Error executing scan callback:', err);
       }
     });
-  };
+  }, []);
 
-  // --- MODE A: Keyboard Emulation (HID USB Reader) Listener ---
+  // ─── MODE A: Keyboard Emulation (HID USB Reader) Listener ───────────────
+  // Strategy:
+  //   - RFID readers type characters < 30ms apart; humans type > 80ms apart.
+  //   - When we detect "fast" typing, we PREVENT the keystrokes from reaching
+  //     whatever field is currently focused (e.preventDefault), buffering them
+  //     internally until Enter arrives.
+  //   - This prevents reader input from "leaking" into Keterangan / Operator fields.
   useEffect(() => {
+    // Track whether we're "inside" a reader sequence
+    let inReaderSequence = false;
+
     const handleKeyDown = (e) => {
       const currentTime = Date.now();
       const timeDiff = currentTime - lastKeyTimeRef.current;
       lastKeyTimeRef.current = currentTime;
 
-      // Card readers type extremely fast (usually < 30ms between characters)
-      // Humans type slower (> 80ms). We reset the buffer if the gap is too long.
-      // But if it's the first key in a while, that's fine.
+      // ── Detect start of a possible reader sequence ──
+      // If gap since last key is short (< 50ms) and a printable char arrives,
+      // assume reader is typing — start blocking it from focused fields.
+      if (timeDiff < 50 && e.key.length === 1) {
+        inReaderSequence = true;
+      }
+
+      // ── Reset buffer if gap is too long (human resumed normal typing) ──
       if (timeDiff > 50 && bufferRef.current.length > 0 && e.key !== 'Enter') {
         bufferRef.current = [];
+        inReaderSequence = false;
       }
 
-      // Buffer printable characters
+      // ── Buffer printable characters ──
       if (e.key.length === 1) {
+        if (inReaderSequence) {
+          // Block this keystroke from going to the currently focused field
+          e.preventDefault();
+          e.stopPropagation();
+        }
         bufferRef.current.push(e.key);
-      } 
-      // Most readers send 'Enter' at the end of the sequence
+      }
+      // ── Enter = end of reader sequence ──
       else if (e.key === 'Enter') {
         const fullString = bufferRef.current.join('');
-        // Validate card scanner speed and length (most card UIDs are 8-15 digits long)
-        if (fullString.length >= 4) {
-          e.preventDefault(); // Stop form submission if focused on a form
-          handleCardScan(fullString, 'KeyboardEmulation');
+
+        // Validate: card UIDs are typically 4-20 characters long and arrived fast
+        if (fullString.length >= 4 && inReaderSequence) {
+          e.preventDefault(); // Stop form submissions
+          e.stopPropagation();
+          handleCardScan(fullString, 'HID-KeyboardEmulation');
         }
+
         bufferRef.current = [];
+        inReaderSequence = false;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
+    // Use 'capture: true' so we intercept before the event reaches input fields
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown, { capture: true });
     };
-  }, []);
+  }, [handleCardScan]);
 
-  // --- MODE B: WebSockets (Serial COM Port Reader) Listener ---
+  // ─── MODE B: WebSockets (Serial COM Port Reader) Listener ───────────────
   useEffect(() => {
     let ws;
     let reconnectTimer;
@@ -101,9 +142,8 @@ export const CardReaderProvider = ({ children }) => {
     const connect = () => {
       // Build WebSocket URL relative to the backend server
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      // Express and WebSocket reside on localhost:5000 during dev, or can be overridden in production
       const wsUrl = import.meta.env.VITE_WS_URL || `${wsProtocol}//${window.location.hostname}:5000`;
-      
+
       setWsStatus('connecting');
       ws = new WebSocket(wsUrl);
 
@@ -140,10 +180,10 @@ export const CardReaderProvider = ({ children }) => {
       if (ws) ws.close();
       clearTimeout(reconnectTimer);
     };
-  }, []);
+  }, [handleCardScan]);
 
   return (
-    <CardReaderContext.Provider value={{ lastCard, wsStatus, registerListener, handleCardScan }}>
+    <CardReaderContext.Provider value={{ lastCard, wsStatus, readerActivity, registerListener, handleCardScan }}>
       {children}
       {/* Real-time Toast/Banner indicating a Card was Tapped */}
       {alertMessage && (

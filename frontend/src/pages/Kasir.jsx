@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useCardReader } from '../context/CardReaderContext';
 import { 
   CreditCard, 
@@ -50,7 +50,11 @@ export default function Kasir() {
     return str.replace(/[^0-9]/g, '');
   };
 
-  const fetchCardByUid = async (uid) => {
+  // Keep a stable ref to fetchCardByUid so the listener registered once
+  // always calls the latest version — avoids stale closure without re-registering.
+  const fetchCardByUidRef = useRef(null);
+
+  const fetchCardByUid = useCallback(async (uid) => {
     if (processing) return; // Guard against scans while transaction is processing
     setReceipt(null);
     setErrorMsg(null);
@@ -60,12 +64,12 @@ export default function Kasir() {
     try {
       const res = await fetch(`/api/kartu/${uid}`);
       const json = await res.json();
-      
+
       if (json.success) {
         // Card registered and has student
         setActiveCard(json.data);
-        // Set default description based on type
-        setDefaultNote(txType, json.data.nama);
+        // Set default description based on current txType (read from ref below)
+        setDefaultNote(txTypeRef.current, json.data.nama);
         setShowManualInput(false);
         setManualUid('');
       } else {
@@ -78,16 +82,26 @@ export default function Kasir() {
     } finally {
       setLoadingCard(false);
     }
-  };
+  }, [processing]);
 
-  // Connect global tap listener
+  // Keep ref always pointing at the latest fetchCardByUid
+  useEffect(() => { fetchCardByUidRef.current = fetchCardByUid; }, [fetchCardByUid]);
+
+  // Keep a ref to txType so the stable listener can read it without stale closure
+  const txTypeRef = useRef(txType);
+  useEffect(() => { txTypeRef.current = txType; }, [txType]);
+
+  // Connect global tap listener ONCE (stable — does not re-register on txType change)
+  // Uses ref indirection so it always calls the latest fetchCardByUid version.
   useEffect(() => {
-    const unsubscribe = registerListener(async (card) => {
-      fetchCardByUid(card.uid);
+    const unsubscribe = registerListener((card) => {
+      // Guard: do not queue another fetch while one is already loading
+      if (fetchCardByUidRef.current) {
+        fetchCardByUidRef.current(card.uid);
+      }
     });
-
     return unsubscribe;
-  }, [txType]);
+  }, [registerListener]); // stable — registerListener is useCallback in context
 
   const handleManualUidSubmit = (e) => {
     e.preventDefault();

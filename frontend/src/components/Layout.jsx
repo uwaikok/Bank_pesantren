@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCardReader } from '../context/CardReaderContext';
 import { 
   LayoutDashboard, 
@@ -15,7 +15,16 @@ import {
 } from 'lucide-react';
 
 export default function Layout({ children, activePage, setActivePage, onLogout }) {
-  const { wsStatus, lastCard } = useCardReader();
+  const { wsStatus, lastCard, readerActivity } = useCardReader();
+
+  // Honest reader status: active = card tapped in last 30 seconds
+  const [readerRecent, setReaderRecent] = useState(false);
+  useEffect(() => {
+    if (!readerActivity) return;
+    setReaderRecent(true);
+    const timer = setTimeout(() => setReaderRecent(false), 30000);
+    return () => clearTimeout(timer);
+  }, [readerActivity]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const currentUser = localStorage.getItem('esaku_name') || localStorage.getItem('esaku_user') || 'Administrator Utama';
@@ -179,20 +188,44 @@ export default function Layout({ children, activePage, setActivePage, onLogout }
               </div>
             )}
 
-            <div className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all duration-300 ${
-              wsStatus === 'connected'
-                ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/50'
-                : 'bg-rose-50 text-rose-700 border-rose-200/50 animate-pulse'
-            }`}>
-              {wsStatus === 'connected' ? (
+            {/* 
+              Honest reader status indicator:
+              - Green  = card was tapped in the last 30 seconds (reader is physically working)
+              - Yellow = ready/idle (HID keyboard emulation is always listening)
+              - Red    = only when WebSocket Serial mode is in use AND disconnected
+              We do NOT say ONLINE/OFFLINE for keyboard-emulation readers because
+              the browser cannot detect HID device presence — only its keystrokes.
+            */}
+            <div
+              title={
+                readerRecent
+                  ? `Kartu terakhir: ${readerActivity?.uid}`
+                  : wsStatus === 'connected'
+                  ? 'Reader Serial terhubung ke server'
+                  : 'Siap menerima input kartu (keyboard emulation)'
+              }
+              className={`flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border transition-all duration-500 ${
+                readerRecent
+                  ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/50'
+                  : wsStatus === 'connected'
+                  ? 'bg-emerald-50/80 text-emerald-700 border-emerald-200/50'
+                  : 'bg-amber-50 text-amber-700 border-amber-200/60'
+              }`}
+            >
+              {readerRecent ? (
                 <>
-                  <Wifi className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">READER CONNECTED</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping flex-shrink-0" />
+                  <span className="hidden sm:inline">KARTU TERBACA</span>
+                </>
+              ) : wsStatus === 'connected' ? (
+                <>
+                  <Wifi className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span className="hidden sm:inline">SERIAL AKTIF</span>
                 </>
               ) : (
                 <>
-                  <WifiOff className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">READER OFFLINE</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+                  <span className="hidden sm:inline">SIAP KARTU</span>
                 </>
               )}
             </div>
