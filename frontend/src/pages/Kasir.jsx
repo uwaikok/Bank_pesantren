@@ -313,7 +313,7 @@ export default function Kasir() {
 
                 {/* Balance display box */}
                 <div className="bg-slate-50 border border-slate-100 p-4 rounded-2xl">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Saldo Uang Jaku Saat Ini</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Saldo Uang Jajan Saat Ini</p>
                   <p className="text-3xl font-black text-slate-800 mt-1">{formatRupiah(activeCard.saldo)}</p>
                 </div>
 

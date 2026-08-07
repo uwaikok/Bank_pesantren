@@ -566,7 +566,7 @@ export default function Santri({ onViewDetail }) {
                   required
                   value={formData.nama}
                   onChange={(e) => setFormData({...formData, nama: e.target.value})}
-                  placeholder="Ahmad Nur Chamid"
+                  placeholder="Rifki Ahmad Dzulfikri"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-semibold"
                 />
               </div>
@@ -761,7 +761,7 @@ export default function Santri({ onViewDetail }) {
                   required
                   value={editFormData.nama}
                   onChange={(e) => setEditFormData({...editFormData, nama: e.target.value})}
-                  placeholder="Ahmad Nur Chamid"
+                  placeholder="Rifki Ahmad Dzulfikri"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 font-semibold"
                 />
               </div>
