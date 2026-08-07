@@ -155,7 +155,7 @@ export default function Dashboard({ setActivePage }) {
             {stats?.total_santri} <span className="text-sm font-semibold text-slate-700">Orang</span>
           </p>
           <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-emerald-800 font-extrabold">▲</span> +3 santri baru minggu ini
+            <span className="text-emerald-800 font-extrabold">●</span> Total santri aktif terdaftar
           </p>
         </div>
 
@@ -180,7 +180,7 @@ export default function Dashboard({ setActivePage }) {
             {stats?.total_kartu_aktif} <span className="text-sm font-semibold text-slate-700">Kartu</span>
           </p>
           <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-sky-800 font-extrabold">▲</span> +2 kartu aktif hari ini
+            <span className="text-sky-800 font-extrabold">●</span> Total kartu RFID aktif
           </p>
         </div>
 
@@ -203,7 +203,7 @@ export default function Dashboard({ setActivePage }) {
           <p className="text-xs font-bold text-slate-800">Total Belanja</p>
           <p className="text-2xl font-black mt-1 text-slate-900">{formatRupiah(stats?.total_pembayaran)}</p>
           <p className="text-[10px] text-slate-800 font-bold mt-2.5 flex items-center gap-1">
-            <span className="text-red-900 font-extrabold">▼</span> -4.2% dibanding bulan lalu
+            <span className="text-red-900 font-extrabold">●</span> Total transaksi belanja kantin
           </p>
         </div>
 
@@ -218,7 +218,7 @@ export default function Dashboard({ setActivePage }) {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-extrabold text-slate-800">Aliran Arus Kas</h4>
-              <p className="text-xs text-slate-500 font-medium mt-0.5">Akumulasi setoran vs. pengeluaran santri.</p>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">Akumulasi setoran dan pengeluaran santri.</p>
             </div>
           </div>
 
